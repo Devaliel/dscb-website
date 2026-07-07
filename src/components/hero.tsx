@@ -166,8 +166,8 @@ function HeroArt({ src, side, glow }: { src: string; side: "left" | "right"; glo
       initial={{ opacity: 0, x: side === "left" ? -70 : 70, scale: 0.96 }}
       animate={{ opacity: 1, x: 0, scale: 1 }}
       transition={{ duration: 1.4, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className={`pointer-events-none absolute top-16 -z-[5] hidden select-none lg:block ${
-        side === "left" ? "-left-16 xl:left-0" : "-right-16 xl:right-0"
+      className={`pointer-events-none absolute top-20 -z-[5] hidden select-none lg:block ${
+        side === "left" ? "-left-8 xl:-left-4" : "-right-8 xl:-right-4"
       }`}
       aria-hidden
     >
@@ -179,15 +179,15 @@ function HeroArt({ src, side, glow }: { src: string; side: "left" | "right"; glo
         onError={() => setOk(false)}
         className={side === "left" ? "hero-art-l" : "hero-art-r"}
         style={{
-          height: "42rem",
+          height: "22rem",
           width: "auto",
           objectFit: "contain",
           opacity: 0.38,
-          filter: `blur(0.6px) saturate(1.15) drop-shadow(0 0 80px color-mix(in oklab, ${glow} 45%, transparent))`,
+          filter: `blur(0.6px) saturate(1.15) drop-shadow(0 0 60px color-mix(in oklab, ${glow} 40%, transparent))`,
           maskImage:
-            "radial-gradient(ellipse 78% 74% at 50% 44%, black 55%, transparent 98%)",
+            "radial-gradient(ellipse 65% 68% at 50% 46%, black 50%, transparent 92%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 78% 74% at 50% 44%, black 55%, transparent 98%)",
+            "radial-gradient(ellipse 65% 68% at 50% 46%, black 50%, transparent 92%)",
         }}
       />
     </motion.div>
