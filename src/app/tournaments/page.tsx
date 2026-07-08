@@ -29,8 +29,10 @@ export default function TournamentsPage() {
             <Reveal key={t.slug} delay={i * 0.05}>
               <Link
                 href={`/tournaments/${t.slug}`}
-                className="group flex flex-col gap-4 rounded-2xl border border-white/10 bg-ink-850 p-6 transition-colors hover:border-white/20 sm:flex-row sm:items-center"
+                className="clip-corner group relative flex flex-col gap-4 border border-white/10 bg-ink-850 p-6 transition-all hover:-translate-y-0.5 hover:border-white/25 sm:flex-row sm:items-center"
+                style={{ boxShadow: "5px 5px 0 rgba(0,0,0,0.45)" }}
               >
+                <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fog-500">
                     <span>
@@ -60,7 +62,7 @@ export default function TournamentsPage() {
                       </>
                     )}
                   </div>
-                  <h2 className="mt-1 font-display text-2xl font-bold text-fog-100">{t.name}</h2>
+                  <h2 className="text-persona mt-1 text-2xl text-fog-100">{t.name}</h2>
                   <p className="mt-1 text-sm text-fog-500">{t.format}</p>
                 </div>
 

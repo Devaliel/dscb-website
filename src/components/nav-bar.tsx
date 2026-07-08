@@ -1,16 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Magnetic from "./magnetic";
+import { TransitionLink } from "./persona/transition-provider";
 
 const LINKS = [
   { href: "/decks", label: "Decks" },
   { href: "/players", label: "Players" },
   { href: "/tournaments", label: "Tournaments" },
+  { href: "/blog", label: "Blog" },
 ];
 
 function NavLogo() {
@@ -30,13 +31,13 @@ function NavLogo() {
   }
   return (
     <span
-      className="grid h-9 w-9 place-items-center rounded-xl font-display text-sm font-bold text-white"
+      className="grid h-9 w-9 -skew-x-6 place-items-center font-display text-sm font-extrabold italic text-white"
       style={{
         background: "linear-gradient(135deg, var(--color-brand-500), var(--color-flare-500))",
-        boxShadow: "0 0 24px -4px var(--color-brand-500)",
+        boxShadow: "3px 3px 0 rgba(0,0,0,0.5)",
       }}
     >
-      DS
+      <span className="skew-x-6">DS</span>
     </span>
   );
 }
@@ -63,46 +64,58 @@ export default function NavBar() {
           scrolled ? "glass shadow-2xl" : "border border-transparent"
         )}
       >
-        <Link href="/" className="group flex items-center gap-2.5">
+        <TransitionLink href="/" className="group flex items-center gap-2.5">
           <NavLogo />
           <span className="hidden font-display text-sm font-semibold tracking-tight text-fog-100 sm:block">
             Duel Standby <span className="text-fog-500">North Celebeast</span>
           </span>
-        </Link>
+        </TransitionLink>
 
         <div className="hidden items-center gap-1 md:flex">
           {LINKS.map((l) => {
             const active = pathname.startsWith(l.href);
             return (
-              <Link
+              <TransitionLink
                 key={l.href}
                 href={l.href}
                 className={cn(
-                  "relative rounded-lg px-3.5 py-2 text-sm transition-colors",
-                  active ? "text-fog-100" : "text-fog-500 hover:text-fog-100"
+                  "group relative overflow-hidden px-4 py-2 text-sm transition-colors",
+                  active ? "text-white" : "text-fog-500 hover:text-white"
                 )}
               >
-                {active && (
-                  <span className="absolute inset-0 rounded-lg bg-white/5 ring-1 ring-white/10" />
-                )}
-                <span className="relative">{l.label}</span>
-              </Link>
+                {/* skewed fill — slides in on hover, solid when active */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute inset-0 -skew-x-12 transition-transform duration-200 ease-out",
+                    active
+                      ? "translate-x-0 bg-brand-500"
+                      : "-translate-x-[110%] bg-brand-500/80 group-hover:translate-x-0"
+                  )}
+                  style={{ boxShadow: active ? "3px 3px 0 rgba(0,0,0,0.4)" : undefined }}
+                />
+                <span className="relative font-display text-sm font-bold uppercase italic tracking-wide">
+                  {l.label}
+                </span>
+              </TransitionLink>
             );
           })}
         </div>
 
         <div className="hidden md:block">
           <Magnetic>
-            <Link
+            <TransitionLink
               href="/decks"
-              className="rounded-xl px-4 py-2 text-sm font-medium text-white transition"
+              className="p-hover-flicker inline-block -skew-x-12 px-5 py-2.5 transition-transform duration-150 hover:-translate-y-0.5"
               style={{
                 background: "linear-gradient(135deg, var(--color-brand-500), var(--color-flare-500))",
-                boxShadow: "0 8px 30px -10px var(--color-brand-500)",
+                boxShadow: "4px 4px 0 rgba(0,0,0,0.5)",
               }}
             >
-              Team Decks
-            </Link>
+              <span className="block skew-x-12 font-display text-sm font-extrabold uppercase italic tracking-wide text-white">
+                Team Decks
+              </span>
+            </TransitionLink>
           </Magnetic>
         </div>
 
@@ -120,15 +133,16 @@ export default function NavBar() {
       </nav>
 
       {open && (
-        <div className="glass absolute inset-x-4 top-20 rounded-2xl p-2 md:hidden">
+        <div className="clip-corner glass absolute inset-x-4 top-20 p-2 md:hidden">
+          <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
           {LINKS.map((l) => (
-            <Link
+            <TransitionLink
               key={l.href}
               href={l.href}
-              className="block rounded-lg px-4 py-3 text-sm text-fog-300 hover:bg-white/5"
+              className="relative block px-4 py-3 font-display text-sm font-bold uppercase italic tracking-wide text-fog-300 hover:bg-white/5 hover:text-white"
             >
               {l.label}
-            </Link>
+            </TransitionLink>
           ))}
         </div>
       )}

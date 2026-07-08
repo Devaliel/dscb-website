@@ -4,6 +4,7 @@ import { display, body } from "@/lib/fonts";
 import SmoothScroll from "@/components/smooth-scroll";
 import NavBar from "@/components/nav-bar";
 import Footer from "@/components/footer";
+import { TransitionProvider } from "@/components/persona/transition-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -20,11 +21,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${body.variable} h-full`}>
       <body className="flex min-h-full flex-col">
-        <SmoothScroll>
-          <NavBar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </SmoothScroll>
+        <TransitionProvider>
+          <SmoothScroll>
+            <NavBar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </SmoothScroll>
+        </TransitionProvider>
       </body>
     </html>
   );

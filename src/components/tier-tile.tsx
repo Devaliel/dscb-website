@@ -13,15 +13,15 @@ export default function TierTile({ deck, index = 0 }: { deck: Deck; index?: numb
   // pointer-driven 3D tilt
   const mx = useMotionValue(0.5);
   const my = useMotionValue(0.5);
-  const rx = useSpring(useTransform(my, [0, 1], [8, -8]), { stiffness: 200, damping: 20 });
-  const ry = useSpring(useTransform(mx, [0, 1], [-8, 8]), { stiffness: 200, damping: 20 });
+  const rx = useSpring(useTransform(my, [0, 1], [6, -6]), { stiffness: 200, damping: 20 });
+  const ry = useSpring(useTransform(mx, [0, 1], [-6, 6]), { stiffness: 200, damping: 20 });
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 24, skewY: 1.5 }}
+      whileInView={{ opacity: 1, y: 0, skewY: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.45, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
       style={{ perspective: 900 }}
     >
       <motion.div
@@ -35,47 +35,55 @@ export default function TierTile({ deck, index = 0 }: { deck: Deck; index?: numb
           my.set(0.5);
         }}
         style={{ rotateX: rx, rotateY: ry, transformStyle: "preserve-3d" }}
-        className="group"
+        className="group relative"
       >
+        {/* offset accent sticker shadow */}
+        <div
+          aria-hidden
+          className="clip-corner absolute inset-0 translate-x-1.5 translate-y-1.5 opacity-40 transition-all duration-200 group-hover:translate-x-2.5 group-hover:translate-y-2.5 group-hover:opacity-60"
+          style={{ background: deck.accent }}
+        />
         <Link
           href={`/decks/${deck.slug}`}
-          className="relative block overflow-hidden rounded-[1.25rem] border border-white/10 bg-ink-850"
-          style={{ boxShadow: `0 20px 60px -30px ${deck.accent}` }}
+          className="clip-corner relative block overflow-hidden border border-white/10 bg-ink-850"
         >
           {/* art */}
           <div className="relative h-44 w-full">
             <CardArt cardId={deck.signatureCardId} image={deck.image} accent={deck.accent} label={deck.name} />
             <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/30 to-transparent" />
+            <div className="halftone absolute inset-0 opacity-[0.05]" aria-hidden />
             {deck.usageCount > 0 && (
               <div
-                className="absolute left-4 top-4 rounded-full px-3 py-1 text-xs font-semibold backdrop-blur"
-                style={{ background: `${deck.accent}28`, color: deck.accent, border: `1px solid ${deck.accent}44` }}
+                className="absolute left-4 top-4 -skew-x-12 px-3 py-1 backdrop-blur"
+                style={{ background: `color-mix(in oklab, ${deck.accent} 85%, black)`, boxShadow: "3px 3px 0 rgba(0,0,0,0.45)" }}
               >
-                {deck.usageCount} lineup{deck.usageCount !== 1 ? "s" : ""}
+                <span className="block skew-x-12 text-xs font-bold uppercase tracking-wide text-white">
+                  {deck.usageCount} lineup{deck.usageCount !== 1 ? "s" : ""}
+                </span>
               </div>
             )}
             {games > 0 && (
               <div
-                className="absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-medium backdrop-blur"
-                style={{ background: `${deck.accent}22`, color: deck.accent }}
+                className="absolute right-4 top-4 -skew-x-12 border px-3 py-1 backdrop-blur"
+                style={{ background: "rgba(0,0,0,0.45)", color: deck.accent, borderColor: `${deck.accent}55` }}
               >
-                {games} games
+                <span className="block skew-x-12 text-xs font-semibold">{games} games</span>
               </div>
             )}
           </div>
 
           {/* meta */}
           <div className="relative -mt-8 p-4">
-            <h3 className="font-display text-xl font-semibold text-fog-100">{deck.name}</h3>
-            <p className="mt-1 line-clamp-2 text-sm text-fog-500">{deck.description}</p>
+            <h3 className="text-persona text-xl text-fog-100">{deck.name}</h3>
+            <p className="mt-1.5 line-clamp-2 text-sm text-fog-500">{deck.description}</p>
 
             <div className="mt-4 flex items-center gap-3">
               {games > 0 ? (
                 <>
                   <div className="flex-1">
-                    <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                    <div className="h-2.5 -skew-x-12 overflow-hidden bg-white/10">
                       <div
-                        className="h-full rounded-full"
+                        className="h-full"
                         style={{
                           width: `${wr}%`,
                           background: `linear-gradient(90deg, ${deck.accent}, ${deck.accent}88)`,
@@ -84,7 +92,7 @@ export default function TierTile({ deck, index = 0 }: { deck: Deck; index?: numb
                       />
                     </div>
                   </div>
-                  <span className="font-display text-lg font-bold" style={{ color: deck.accent }}>
+                  <span className="font-display text-lg font-extrabold italic" style={{ color: deck.accent }}>
                     {wr}%
                   </span>
                 </>
@@ -94,10 +102,10 @@ export default function TierTile({ deck, index = 0 }: { deck: Deck; index?: numb
             </div>
           </div>
 
-          {/* hover glow border */}
+          {/* hover accent outline */}
           <div
-            className="pointer-events-none absolute inset-0 rounded-[1.25rem] opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            style={{ boxShadow: `inset 0 0 0 1px ${deck.accent}, 0 0 40px -6px ${deck.accent}` }}
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+            style={{ boxShadow: `inset 0 0 0 1.5px ${deck.accent}` }}
           />
         </Link>
       </motion.div>

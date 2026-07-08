@@ -3,9 +3,10 @@
 import { motion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
+// P5 snap: slight skew settles as it lands — fast, not floaty
 const variants: Variants = {
-  hidden: { opacity: 0, y: 28, filter: "blur(6px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)" },
+  hidden: { opacity: 0, y: 24, skewY: 1.5 },
+  show: { opacity: 1, y: 0, skewY: 0 },
 };
 
 export function Reveal({
@@ -24,7 +25,7 @@ export function Reveal({
       whileInView="show"
       viewport={{ once: true, margin: "-80px" }}
       variants={variants}
-      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>
@@ -65,7 +66,7 @@ export function RevealItem({
     <motion.div
       className={className}
       variants={variants}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
     >
       {children}
     </motion.div>

@@ -15,13 +15,16 @@ function DeckThumb({ deck, size = 28 }: { deck: Deck; size?: number }) {
   );
 }
 
+const stripes = (c: string) =>
+  `repeating-linear-gradient(-45deg, ${c} 0 6px, transparent 6px 12px)`;
+
 function cellColor(wr: number) {
-  // red (low) -> neutral -> green (high)
-  if (wr >= 60) return { bg: "rgba(18,230,216,0.20)", fg: "#4ff0e6" };
-  if (wr >= 52) return { bg: "rgba(18,230,216,0.10)", fg: "#9beee6" };
-  if (wr >= 48) return { bg: "rgba(255,255,255,0.04)", fg: "var(--color-fog-300)" };
-  if (wr >= 40) return { bg: "rgba(255,46,136,0.10)", fg: "#ff8fbb" };
-  return { bg: "rgba(255,46,136,0.20)", fg: "#ff62a6" };
+  // favoured = teal, unfavoured = pink, with diagonal micro-stripes at the extremes
+  if (wr >= 60) return { bg: `rgba(18,230,216,0.14)`, img: stripes("rgba(18,230,216,0.10)"), fg: "#4ff0e6" };
+  if (wr >= 52) return { bg: "rgba(18,230,216,0.08)", img: "none", fg: "#9beee6" };
+  if (wr >= 48) return { bg: "rgba(255,255,255,0.04)", img: "none", fg: "var(--color-fog-300)" };
+  if (wr >= 40) return { bg: "rgba(255,46,136,0.08)", img: "none", fg: "#ff8fbb" };
+  return { bg: `rgba(255,46,136,0.14)`, img: stripes("rgba(255,46,136,0.10)"), fg: "#ff62a6" };
 }
 
 export default function MatchupGrid({
@@ -68,8 +71,10 @@ export default function MatchupGrid({
                 const wr = rows[ri][ci];
                 if (wr === null) {
                   return (
-                    <td key={col.slug} className="rounded-lg bg-white/[0.02] p-0 text-center">
-                      <div className="grid h-11 place-items-center text-fog-600">—</div>
+                    <td key={col.slug} className="p-0 text-center">
+                      <div className="grid h-11 -skew-x-6 place-items-center bg-white/[0.02] text-fog-600">
+                        <span className="skew-x-6">—</span>
+                      </div>
                     </td>
                   );
                 }
@@ -77,11 +82,11 @@ export default function MatchupGrid({
                 return (
                   <td key={col.slug} className="p-0 text-center">
                     <div
-                      className="grid h-11 place-items-center rounded-lg text-sm font-semibold transition-transform hover:scale-105"
-                      style={{ background: c.bg, color: c.fg }}
+                      className="grid h-11 -skew-x-6 place-items-center text-sm font-bold transition-transform hover:scale-105"
+                      style={{ background: c.bg, backgroundImage: c.img, color: c.fg }}
                       title={`${row.name} vs ${col.name}: ${wr}%`}
                     >
-                      {wr}%
+                      <span className="skew-x-6">{wr}%</span>
                     </div>
                   </td>
                 );

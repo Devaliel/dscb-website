@@ -34,30 +34,31 @@ function WeekBlock({ week, index }: { week: WeekLineup; index: number }) {
 
   return (
     <Reveal delay={index * 0.07}>
-      <div className="overflow-hidden rounded-2xl border border-white/10 bg-ink-850">
+      <div className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850">
+        <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
         {/* week header */}
-        <div className="flex items-center justify-between gap-3 border-b border-white/10 px-6 py-4">
-          <h3 className="font-display text-lg font-bold text-fog-100">
+        <div className="relative flex items-center justify-between gap-3 border-b border-white/10 px-6 py-4">
+          <h3 className="text-persona text-lg text-fog-100">
             {week.week}
             {week.opponentTeam && (
-              <span className="ml-3 text-sm font-medium text-fog-500">
+              <span className="ml-3 text-sm font-medium normal-case not-italic text-fog-500">
                 vs <span className="text-fog-300">{week.opponentTeam}</span>
               </span>
             )}
           </h3>
           <span
-            className="rounded-full px-3 py-0.5 text-xs font-semibold"
+            className="-skew-x-12 px-3 py-1 text-xs font-bold uppercase tracking-wide"
             style={{
-              background: `color-mix(in oklab, ${resultColor} 18%, transparent)`,
-              color: resultColor,
-              border: `1px solid color-mix(in oklab, ${resultColor} 35%, transparent)`,
+              background: `color-mix(in oklab, ${resultColor} 82%, black)`,
+              color: "white",
+              boxShadow: "3px 3px 0 rgba(0,0,0,0.4)",
             }}
           >
-            {resultLabel}
+            <span className="block skew-x-12">{resultLabel}</span>
           </span>
         </div>
 
-        <div className="grid gap-px sm:grid-cols-2">
+        <div className="relative grid gap-px sm:grid-cols-2">
           {/* lineup */}
           <div className="p-5">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-fog-600">Lineup</p>
@@ -157,7 +158,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
       <div className="mx-auto max-w-6xl px-6 py-12">
         {isTeam && t.weeks ? (
           <>
-            <h2 className="mb-8 font-display text-2xl font-bold text-fog-100">Weekly Lineups</h2>
+            <h2 className="text-persona mb-8 text-2xl text-fog-100">Weekly Lineups</h2>
             <div className="space-y-5">
               {t.weeks.map((week, i) => (
                 <WeekBlock key={week.week} week={week} index={i} />
@@ -169,7 +170,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
               if (!matrix) return null;
               return (
                 <section className="mt-14">
-                  <h2 className="mb-2 font-display text-2xl font-bold text-fog-100">Matchup data</h2>
+                  <h2 className="text-persona mb-2 text-2xl text-fog-100">Matchup data</h2>
                   <p className="mb-6 text-sm text-fog-500">
                     Real head-to-head win rates from recorded rounds. — means no games between those archetypes in this tournament.
                   </p>
@@ -187,7 +188,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
                     </div>
                   )}
                   <Reveal>
-                    <div className="rounded-2xl border border-white/10 bg-ink-850 p-4 sm:p-6">
+                    <div className="clip-corner border border-white/10 bg-ink-850 p-4 sm:p-6">
                       <MatchupGrid decks={matrix.decks} rows={matrix.rows} />
                     </div>
                   </Reveal>

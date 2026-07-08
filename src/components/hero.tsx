@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Magnetic from "./magnetic";
+import Star from "./persona/star";
+import { TransitionLink } from "./persona/transition-provider";
 
 export default function Hero({
   topDeckWr,
@@ -63,13 +64,15 @@ export default function Hero({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="hero-fade mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs text-fog-300"
+            className="hero-fade mb-6 inline-block -skew-x-12 border border-white/15 bg-white/5 px-4 py-1.5"
           >
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyber-400" />
-            Season 2026 — live rankings
+            <span className="flex skew-x-12 items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-fog-300">
+              <Star className="h-2.5 w-2.5 text-cyber-400" />
+              Season 2026 — live rankings
+            </span>
           </motion.div>
 
-          <h1 className="hero-fade font-display text-5xl font-bold leading-[0.95] tracking-tight text-fog-100 sm:text-7xl md:text-8xl lg:text-6xl xl:text-7xl 2xl:text-8xl">
+          <h1 className="text-persona hero-fade text-5xl leading-[0.95] text-fog-100 sm:text-7xl md:text-8xl lg:text-6xl xl:text-7xl 2xl:text-8xl">
             <motion.span
               className="block overflow-hidden"
               initial="hidden"
@@ -81,17 +84,22 @@ export default function Hero({
               </motion.span>
             </motion.span>
             <motion.span
-              className="mt-2 block overflow-hidden"
+              className="mt-3 block overflow-visible"
               initial="hidden"
               animate="show"
               transition={{ staggerChildren: 0.12, delayChildren: 0.25 }}
             >
-              <motion.span
-                className="text-gradient block"
-                variants={word}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              >
-                North Celebeast
+              <motion.span className="relative inline-block" variants={word} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}>
+                {/* accent slab snaps in behind the second line */}
+                <motion.span
+                  aria-hidden
+                  className="absolute -inset-x-3 inset-y-0 -z-10 -skew-x-6"
+                  style={{ background: "linear-gradient(100deg, var(--color-brand-500), var(--color-flare-500))", boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}
+                  initial={{ scaleX: 0, originX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.5, delay: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                />
+                <span className="px-1 text-white">North Celebeast</span>
               </motion.span>
             </motion.span>
           </h1>
@@ -113,23 +121,28 @@ export default function Hero({
             className="hero-fade mt-9 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
           >
             <Magnetic>
-              <Link
+              <TransitionLink
                 href="/decks"
-                className="rounded-xl px-6 py-3 font-medium text-white"
+                className="p-hover-flicker inline-block -skew-x-12 px-7 py-3 transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5"
                 style={{
                   background: "linear-gradient(135deg, var(--color-brand-500), var(--color-flare-500))",
-                  boxShadow: "0 10px 40px -12px var(--color-brand-500)",
+                  boxShadow: "5px 5px 0 rgba(0,0,0,0.55)",
                 }}
               >
-                View team decks
-              </Link>
+                <span className="block skew-x-12 font-display text-sm font-extrabold uppercase italic tracking-wide text-white">
+                  View team decks
+                </span>
+              </TransitionLink>
             </Magnetic>
-            <Link
+            <TransitionLink
               href="/players"
-              className="rounded-xl border border-white/15 bg-white/5 px-6 py-3 font-medium text-fog-100 transition hover:bg-white/10"
+              className="p-hover-flicker inline-block -skew-x-12 border-[1.5px] border-white/25 bg-white/5 px-7 py-3 transition-all duration-150 hover:-translate-y-0.5 hover:bg-white/10"
+              style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.45)" }}
             >
-              Meet the roster
-            </Link>
+              <span className="block skew-x-12 font-display text-sm font-extrabold uppercase italic tracking-wide text-fog-100">
+                Meet the roster
+              </span>
+            </TransitionLink>
           </motion.div>
 
           <motion.div
@@ -219,9 +232,11 @@ function HeroArt({ src, glow }: { src: string; glow: string }) {
 
 function HeroStat({ v, l }: { v: string | number; l: string }) {
   return (
-    <div className="glass rounded-2xl py-4">
-      <p className="font-display text-2xl font-bold text-fog-100">{v}</p>
-      <p className="mt-0.5 text-xs text-fog-500">{l}</p>
+    <div className="-skew-x-6 border border-white/10 bg-ink-850/80 py-4 backdrop-blur" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.4)" }}>
+      <div className="skew-x-6">
+        <p className="font-display text-2xl font-extrabold italic text-fog-100">{v}</p>
+        <p className="mt-0.5 text-[11px] uppercase tracking-wider text-fog-500">{l}</p>
+      </div>
     </div>
   );
 }
