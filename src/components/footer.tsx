@@ -14,8 +14,19 @@ export default function Footer() {
           <Link href="/tournaments" className="hover:text-fog-100">Tournaments</Link>
         </div>
       </div>
-      <div className="border-t border-white/5 py-5 text-center text-xs text-fog-600">
-        © {new Date().getFullYear()} DSCB. Card data & art via YGOPRODeck. Fan project, not affiliated with Konami.
+      <div className="flex flex-col items-center gap-1.5 border-t border-white/5 py-5 text-center text-xs text-fog-600 sm:flex-row sm:justify-between sm:px-6">
+        <p>© {new Date().getFullYear()} DSCB. Card data & art via YGOPRODeck. Fan project, not affiliated with Konami.</p>
+        <p>
+          Built by{" "}
+          <a
+            href="https://darkzill.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-fog-500 underline decoration-white/20 underline-offset-2 hover:text-fog-100"
+          >
+            Darkzill
+          </a>
+        </p>
       </div>
     </footer>
   );
