@@ -583,3 +583,59 @@ export function getMatchupMatrix() {
   );
   return { decks: list, rows };
 }
+
+/** Maps free-text opponent deck strings → our deck slugs */
+const opponentAlias: Record<string, string> = {
+  "vs k9":             "vanquish-soul",
+  "radian typhoon":    "radiant-typhoon",
+  "radiant ss":        "radiant-typhoon",
+  "rt zoodiac":        "radiant-typhoon",
+  "kewl tune":         "kewl-tune",
+  "kewl tune elfnote": "kewl-tune",
+  "yummy solfa":       "yummy",
+  "branded albaz":     "branded-despia",
+  "magnet":            "magnet-warrior",
+};
+
+/** Real head-to-head win rates computed from recorded rounds in a specific tournament. */
+export function getTournamentMatchupMatrix(slug: string) {
+  const t = getTournament(slug);
+  if (!t?.weeks) return null;
+
+  // collect all deck slugs that actually appeared in this tournament's lineups
+  const slugSet = new Set<string>();
+  for (const w of t.weeks)
+    for (const d of w.deckList)
+      if (d.deckSlug) slugSet.add(d.deckSlug);
+
+  const list = getAllDecks().filter((d) => slugSet.has(d.slug));
+  if (list.length < 2) return null;
+
+  const tally: Record<string, Record<string, { w: number; l: number }>> = {};
+  for (const a of list) {
+    tally[a.slug] = {};
+    for (const b of list) tally[a.slug][b.slug] = { w: 0, l: 0 };
+  }
+
+  for (const w of t.weeks) {
+    for (const r of w.rounds ?? []) {
+      const ourSlug   = w.deckList.find((d) => d.handle === r.dsPlayerHandle)?.deckSlug;
+      const theirSlug = r.opponentDeck ? opponentAlias[r.opponentDeck.toLowerCase()] : undefined;
+      if (!ourSlug || !theirSlug) continue;
+      if (!tally[ourSlug] || !tally[theirSlug]) continue;
+      tally[ourSlug][theirSlug].w  += r.dsWins;
+      tally[ourSlug][theirSlug].l  += r.dsLosses;
+      tally[theirSlug][ourSlug].w  += r.dsLosses;
+      tally[theirSlug][ourSlug].l  += r.dsWins;
+    }
+  }
+
+  const rows: (number | null)[][] = list.map((a) =>
+    list.map((b) => {
+      if (a.slug === b.slug) return null;
+      const { w, l } = tally[a.slug][b.slug];
+      return w + l === 0 ? null : Math.round((w / (w + l)) * 100);
+    })
+  );
+  return { decks: list, rows };
+}

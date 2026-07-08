@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { Reveal } from "@/components/reveal";
 import TierBadge from "@/components/tier-badge";
 import DeckChip from "@/components/deck-chip";
-import { getTournament, getTournaments, getPlayer, getDeck } from "@/lib/data";
+import { getTournament, getTournaments, getPlayer, getDeck, getTournamentMatchupMatrix } from "@/lib/data";
+import MatchupGrid from "@/components/matchup-grid";
 import { winRate } from "@/lib/utils";
 import type { WeekLineup } from "@/lib/types";
 
@@ -162,6 +163,28 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
                 <WeekBlock key={week.week} week={week} index={i} />
               ))}
             </div>
+            {(() => {
+              const matrix = getTournamentMatchupMatrix(t.slug);
+              if (!matrix) return null;
+              return (
+                <section className="mt-14">
+                  <h2 className="mb-2 font-display text-2xl font-bold text-fog-100">Matchup data</h2>
+                  <p className="mb-6 text-sm text-fog-500">
+                    Real head-to-head win rates from recorded rounds. — means no games between those archetypes in this tournament.
+                  </p>
+                  <Reveal>
+                    <div className="rounded-2xl border border-white/10 bg-ink-850 p-4 sm:p-6">
+                      <MatchupGrid decks={matrix.decks} rows={matrix.rows} />
+                    </div>
+                  </Reveal>
+                  <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-fog-500">
+                    <span className="flex items-center gap-2"><span className="h-3 w-6 rounded" style={{ background: "rgba(18,230,216,0.20)" }} /> Favoured (60%+)</span>
+                    <span className="flex items-center gap-2"><span className="h-3 w-6 rounded" style={{ background: "rgba(255,255,255,0.04)" }} /> Even</span>
+                    <span className="flex items-center gap-2"><span className="h-3 w-6 rounded" style={{ background: "rgba(255,46,136,0.20)" }} /> Unfavoured (40%-)</span>
+                  </div>
+                </section>
+              );
+            })()}
           </>
         ) : (
           <>
