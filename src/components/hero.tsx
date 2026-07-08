@@ -33,19 +33,19 @@ export default function Hero({
         ease: "none",
         scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true },
       });
-      // flanking card art — drift at different speeds and melt away on scroll
+      // corner card art — sink out of frame at different speeds on scroll
       gsap.to(".hero-art-l", {
-        yPercent: 22,
-        xPercent: -8,
-        rotate: -3,
+        yPercent: 14,
+        xPercent: -6,
+        rotate: -2,
         opacity: 0,
         ease: "none",
         scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true },
       });
       gsap.to(".hero-art-r", {
-        yPercent: 32,
-        xPercent: 8,
-        rotate: 3,
+        yPercent: 20,
+        xPercent: 6,
+        rotate: 2,
         opacity: 0,
         ease: "none",
         scrollTrigger: { trigger: root.current, start: "top top", end: "bottom top", scrub: true },
@@ -163,11 +163,11 @@ function HeroArt({ src, side, glow }: { src: string; side: "left" | "right"; glo
   if (!ok) return null;
   return (
     <motion.div
-      initial={{ opacity: 0, x: side === "left" ? -70 : 70, scale: 0.96 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
+      initial={{ opacity: 0, y: 90 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 1.4, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className={`pointer-events-none absolute top-20 -z-[5] hidden select-none lg:block ${
-        side === "left" ? "-left-8 xl:-left-4" : "-right-8 xl:-right-4"
+      className={`pointer-events-none absolute bottom-0 -z-[5] hidden select-none lg:block ${
+        side === "left" ? "-left-10 xl:left-0" : "-right-10 xl:right-0"
       }`}
       aria-hidden
     >
@@ -179,15 +179,16 @@ function HeroArt({ src, side, glow }: { src: string; side: "left" | "right"; glo
         onError={() => setOk(false)}
         className={side === "left" ? "hero-art-l" : "hero-art-r"}
         style={{
-          height: "22rem",
+          height: "34rem",
           width: "auto",
           objectFit: "contain",
+          marginBottom: "-3rem",
           opacity: 0.38,
-          filter: `blur(0.6px) saturate(1.15) drop-shadow(0 0 60px color-mix(in oklab, ${glow} 40%, transparent))`,
+          filter: `blur(0.6px) saturate(1) drop-shadow(0 0 60px color-mix(in oklab, ${glow} 40%, transparent))`,
           maskImage:
-            "radial-gradient(ellipse 65% 68% at 50% 46%, black 50%, transparent 92%)",
+            "radial-gradient(ellipse 85% 88% at 50% 32%, black 42%, transparent 94%)",
           WebkitMaskImage:
-            "radial-gradient(ellipse 65% 68% at 50% 46%, black 50%, transparent 92%)",
+            "radial-gradient(ellipse 85% 88% at 50% 32%, black 42%, transparent 94%)",
         }}
       />
     </motion.div>
