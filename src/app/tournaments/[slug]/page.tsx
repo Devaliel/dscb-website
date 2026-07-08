@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { Reveal } from "@/components/reveal";
 import TierBadge from "@/components/tier-badge";
 import DeckChip from "@/components/deck-chip";
-import { getTournament, getTournaments, getPlayer, getDeck, getTournamentMatchupMatrix } from "@/lib/data";
+import { getTournament, getTournaments, getPlayer, getDeck, getTournamentMatchupMatrix, getTournamentMetaAnalyst } from "@/lib/data";
 import MatchupGrid from "@/components/matchup-grid";
 import { winRate } from "@/lib/utils";
 import type { WeekLineup } from "@/lib/types";
@@ -165,6 +165,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
             </div>
             {(() => {
               const matrix = getTournamentMatchupMatrix(t.slug);
+              const meta = getTournamentMetaAnalyst(t.slug);
               if (!matrix) return null;
               return (
                 <section className="mt-14">
@@ -172,6 +173,19 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
                   <p className="mb-6 text-sm text-fog-500">
                     Real head-to-head win rates from recorded rounds. — means no games between those archetypes in this tournament.
                   </p>
+                  {meta && (
+                    <div className="mb-6 rounded-xl border border-white/10 bg-white/[0.03] p-4 text-sm leading-relaxed text-fog-300">
+                      <span
+                        className="mr-2 inline-block rounded-full px-2 py-0.5 text-xs font-semibold"
+                        style={{ color: "var(--color-brand-300)", background: "color-mix(in oklab, var(--color-brand-500) 18%, transparent)" }}
+                      >
+                        Meta Analyst
+                      </span>
+                      {meta.topDeck.name} was DS Celebeast&apos;s most-fielded archetype this tournament ({meta.topDeck.usageCount} phases).
+                      {meta.best && ` Its strongest matchup was vs ${meta.best.deck.name} at ${meta.best.wr}% (${meta.best.games} games).`}
+                      {meta.worst && ` Its toughest was vs ${meta.worst.deck.name} at ${meta.worst.wr}% (${meta.worst.games} games).`}
+                    </div>
+                  )}
                   <Reveal>
                     <div className="rounded-2xl border border-white/10 bg-ink-850 p-4 sm:p-6">
                       <MatchupGrid decks={matrix.decks} rows={matrix.rows} />

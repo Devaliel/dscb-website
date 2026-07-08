@@ -11,7 +11,6 @@ const LINKS = [
   { href: "/decks", label: "Decks" },
   { href: "/players", label: "Players" },
   { href: "/tournaments", label: "Tournaments" },
-  { href: "/matchups", label: "Matchups" },
 ];
 
 function NavLogo() {

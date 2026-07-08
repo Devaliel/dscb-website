@@ -570,20 +570,6 @@ export function getTournament(slug: string) {
   return tournaments.find((t) => t.slug === slug);
 }
 
-/** Matchup matrix — derived from W/L data where available. */
-export function getMatchupMatrix() {
-  const list = getDecks().filter((d) => d.wins + d.losses > 0);
-  const rows: (number | null)[][] = list.map((a) =>
-    list.map((b) => {
-      if (a.slug === b.slug) return null;
-      const base = winRate(a.wins, a.losses) - winRate(b.wins, b.losses);
-      const seed = ((a.slug.length * 7 + b.slug.length * 13) % 11) - 5;
-      return Math.max(18, Math.min(82, 50 + Math.round(base * 0.6) + seed));
-    })
-  );
-  return { decks: list, rows };
-}
-
 /** Maps free-text opponent deck strings → our deck slugs */
 const opponentAlias: Record<string, string> = {
   "vs k9":             "vanquish-soul",
@@ -597,8 +583,8 @@ const opponentAlias: Record<string, string> = {
   "magnet":            "magnet-warrior",
 };
 
-/** Real head-to-head win rates computed from recorded rounds in a specific tournament. */
-export function getTournamentMatchupMatrix(slug: string) {
+/** Builds the deck list + head-to-head W/L tally for a tournament, from real round data. */
+function buildTournamentTally(slug: string) {
   const t = getTournament(slug);
   if (!t?.weeks) return null;
 
@@ -623,19 +609,57 @@ export function getTournamentMatchupMatrix(slug: string) {
       const theirSlug = r.opponentDeck ? opponentAlias[r.opponentDeck.toLowerCase()] : undefined;
       if (!ourSlug || !theirSlug) continue;
       if (!tally[ourSlug] || !tally[theirSlug]) continue;
-      tally[ourSlug][theirSlug].w  += r.dsWins;
-      tally[ourSlug][theirSlug].l  += r.dsLosses;
-      tally[theirSlug][ourSlug].w  += r.dsLosses;
-      tally[theirSlug][ourSlug].l  += r.dsWins;
+      if (ourSlug === theirSlug) {
+        // mirror match — add once, not twice
+        tally[ourSlug][theirSlug].w += r.dsWins;
+        tally[ourSlug][theirSlug].l += r.dsLosses;
+      } else {
+        tally[ourSlug][theirSlug].w += r.dsWins;
+        tally[ourSlug][theirSlug].l += r.dsLosses;
+        tally[theirSlug][ourSlug].w += r.dsLosses;
+        tally[theirSlug][ourSlug].l += r.dsWins;
+      }
     }
   }
 
+  return { list, tally };
+}
+
+/** Real head-to-head win rates computed from recorded rounds in a specific tournament. */
+export function getTournamentMatchupMatrix(slug: string) {
+  const built = buildTournamentTally(slug);
+  if (!built) return null;
+  const { list, tally } = built;
+
   const rows: (number | null)[][] = list.map((a) =>
     list.map((b) => {
-      if (a.slug === b.slug) return null;
       const { w, l } = tally[a.slug][b.slug];
       return w + l === 0 ? null : Math.round((w / (w + l)) * 100);
     })
   );
   return { decks: list, rows };
+}
+
+/** Short, real-data-driven meta summary for a tournament's most-fielded deck. */
+export function getTournamentMetaAnalyst(slug: string) {
+  const built = buildTournamentTally(slug);
+  if (!built) return null;
+  const { list, tally } = built;
+
+  const topDeck = [...list].sort((a, b) => b.usageCount - a.usageCount)[0];
+  if (!topDeck) return null;
+
+  const matchups = list
+    .filter((d) => d.slug !== topDeck.slug)
+    .map((d) => {
+      const { w, l } = tally[topDeck.slug][d.slug];
+      return { deck: d, wr: w + l === 0 ? null : Math.round((w / (w + l)) * 100), games: w + l };
+    })
+    .filter((m) => m.wr !== null && m.games >= 2) as { deck: Deck; wr: number; games: number }[];
+
+  const best = matchups.length ? matchups.reduce((a, b) => (b.wr > a.wr ? b : a)) : null;
+  const worst = matchups.length ? matchups.reduce((a, b) => (b.wr < a.wr ? b : a)) : null;
+  const sameMatchup = best && worst && best.deck.slug === worst.deck.slug;
+
+  return { topDeck, best, worst: sameMatchup ? null : worst };
 }

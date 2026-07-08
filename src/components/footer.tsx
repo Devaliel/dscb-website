@@ -12,7 +12,6 @@ export default function Footer() {
           <Link href="/decks" className="hover:text-fog-100">Decks</Link>
           <Link href="/players" className="hover:text-fog-100">Players</Link>
           <Link href="/tournaments" className="hover:text-fog-100">Tournaments</Link>
-          <Link href="/matchups" className="hover:text-fog-100">Matchups</Link>
         </div>
       </div>
       <div className="border-t border-white/5 py-5 text-center text-xs text-fog-600">
