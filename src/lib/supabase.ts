@@ -5,8 +5,8 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * Fill NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local
  * to switch the data layer from src/lib/data.ts (mock) to live queries.
  */
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://gwfahsxrrvdaovqnxrmf.supabase.co";
+const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3ZmFoc3hycnZkYW92cW54cm1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM0OTI5NDEsImV4cCI6MjA5OTA2ODk0MX0.EVBpVZ7jG0aE2sbuK-lSoYohu3OJGryQZ92bvnM317o";
 
 export const supabaseEnabled = Boolean(url && anon);
 
