@@ -57,11 +57,8 @@ export default function Hero({
         <div className="absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-flare-500/15 blur-[100px]" />
       </div>
 
-      {/* single hero art — Yubel, blended into the aurora on the right */}
-      <HeroArt src="/deck-art/hero-art-right.png" glow="var(--color-brand-500)" />
-
-      <div className="mx-auto max-w-6xl">
-        <div className="max-w-3xl text-center lg:text-left">
+      <div className="mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[3fr_2fr]">
+        <div className="text-center lg:text-left">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -72,7 +69,7 @@ export default function Hero({
             Season 2026 — live rankings
           </motion.div>
 
-          <h1 className="hero-fade font-display text-5xl font-bold leading-[0.95] tracking-tight text-fog-100 sm:text-7xl md:text-8xl">
+          <h1 className="hero-fade font-display text-5xl font-bold leading-[0.95] tracking-tight text-fog-100 sm:text-7xl md:text-8xl lg:text-6xl xl:text-7xl 2xl:text-8xl">
             <motion.span
               className="block overflow-hidden"
               initial="hidden"
@@ -146,6 +143,9 @@ export default function Hero({
             <HeroStat v={players} l="Roster" />
           </motion.div>
         </div>
+
+        {/* hero art — Yubel, proportional right column */}
+        <HeroArt src="/deck-art/hero-art-right.png" glow="var(--color-brand-500)" />
       </div>
     </section>
   );
@@ -178,12 +178,12 @@ function HeroArt({ src, glow }: { src: string; glow: string }) {
       initial={{ opacity: 0, x: 120, skewX: -6 }}
       animate={{ opacity: 1, x: 0, skewX: 0 }}
       transition={{ duration: 0.9, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="pointer-events-none absolute -right-8 bottom-0 -z-[5] hidden select-none lg:block xl:right-6 2xl:right-24"
+      className="pointer-events-none hidden select-none justify-center lg:flex"
       aria-hidden
     >
       <motion.div
-        className="hero-art-r relative"
-        style={{ height: "38rem", width: "26rem", maskImage: mask, WebkitMaskImage: mask }}
+        className="hero-art-r relative aspect-[2/3] w-full max-w-sm"
+        style={{ maskImage: mask, WebkitMaskImage: mask }}
         animate={{ y: [0, -12, 0] }}
         transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       >
