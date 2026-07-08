@@ -269,12 +269,12 @@ export const decks: Deck[] = [
     accent: "#FB923C",
     signatureCardId: 0,
     image: "/deck-art/snake-eyes.jpg",
-    wins: 5,
-    losses: 10,
-    usageCount: 3,
+    wins: 14,
+    losses: 17,
+    usageCount: 7,
     description:
-      "Fielded by Mev in Week 5 and the Top 8, and Yuryevna in Week 5. Mev won the Snake Eyes mirror in Week 5; the Top 8 vs MUGITY's Branded wall was a rougher road. 5W–10L.",
-    pilotHandles: ["mev7901", "yuryevna"],
+      "The team's most-travelled Fire archetype — Mev and Yuryevna ran it across WMGR 2024 (W5 + Top 8), Lonts and Cain added it in WMGPxA 2024 W2, and Mev brought it back in WMGPxA W3. 14W–17L career.",
+    pilotHandles: ["mev7901", "yuryevna", "Lonts94", "cain00"],
     sampleList: [],
   },
   {
@@ -303,6 +303,91 @@ export const decks: Deck[] = [
     description:
       "Cain's Week 5 experiment in WMGR 2024 — the Tri-Brigade Zoodiac hybrid. 2W–4L in a tough matchup spread against Stellar Trace.",
     pilotHandles: ["cain00"],
+    sampleList: [],
+  },
+  /* ── WMGPxA 2024 archetypes ──────────────────────────────────────── */
+  {
+    slug: "snake-race",
+    name: "Snake Race",
+    accent: "#FB923C",
+    signatureCardId: 0,
+    image: "/deck-art/snake-race.jpg",
+    wins: 4,
+    losses: 3,
+    usageCount: 1,
+    description:
+      "Mev's hybrid Snake-Eyes build for WMGPxA 2024 Week 1 — swept the Snake Race mirror in Babak 1 and ground out 4W–3L including two 1-1 draws against Nugget knights.",
+    pilotHandles: ["mev7901"],
+    sampleList: [],
+  },
+  {
+    slug: "r-ace",
+    name: "R-ACE",
+    accent: "#38BDF8",
+    signatureCardId: 0,
+    image: "/deck-art/r-ace.jpg",
+    wins: 1,
+    losses: 2,
+    usageCount: 1,
+    description:
+      "Mev's tech pick for WMGPxA 2024 Week 2 against Stellar Trace — the Rescue-ACE control engine. 1W–2L in a tough 0-2 match loss.",
+    pilotHandles: ["mev7901"],
+    sampleList: [],
+  },
+  {
+    slug: "branded-chimera",
+    name: "Branded Chimera",
+    accent: "#EC4899",
+    signatureCardId: 0,
+    image: "/deck-art/branded-chimera.jpg",
+    wins: 3,
+    losses: 4,
+    usageCount: 2,
+    description:
+      "Yuryevna's Branded variant for WMGPxA 2024 — the Chimera Fusion build. A perfect 2-0 sweep in Week 2 Babak 1 before running into tougher matchups. 3W–4L total.",
+    pilotHandles: ["yuryevna"],
+    sampleList: [],
+  },
+  {
+    slug: "purrely",
+    name: "Purrely",
+    accent: "#A78BFA",
+    signatureCardId: 0,
+    image: "/deck-art/purrely.jpg",
+    wins: 4,
+    losses: 5,
+    usageCount: 2,
+    description:
+      "Lonts's WMGPxA 2024 Week 1 pick and Cain's Week 4 selection — the Purrely Xyz engine. Lonts carried the B3 decider against Nugget knights. 4W–5L total.",
+    pilotHandles: ["Lonts94", "cain00"],
+    sampleList: [],
+  },
+  {
+    slug: "unchained",
+    name: "Unchained",
+    accent: "#F97316",
+    signatureCardId: 0,
+    image: "/deck-art/unchained.jpg",
+    wins: 3,
+    losses: 3,
+    usageCount: 1,
+    description:
+      "Sieg's WMGPxA 2024 Week 3 weapon — the Unchained destruction-trigger engine. Dead-even at 3W–3L across two babaks against スーパーこめかみブラザーズ.",
+    pilotHandles: ["sieg121"],
+    sampleList: [],
+  },
+  {
+    slug: "fire-king",
+    name: "Fire King",
+    accent: "#EF4444",
+    signatureCardId: 0,
+    image: "/deck-art/fire-king.jpg",
+    wins: 5,
+    losses: 6,
+    usageCount: 2,
+    description:
+      "Double-fielded by Mev and Lonts in WMGPxA 2024 Week 4 against Black Material. Lonts took a clean 2-0 in Babak 1; the R-ACE and Salamangreat matchups proved tougher. 5W–6L.",
+    pilotHandles: ["mev7901", "Lonts94"],
     sampleList: [],
   },
   {
@@ -371,11 +456,11 @@ export const players: Player[] = [
     name: "DS Sieg",
     role: "Captain",
     tagline: "Magnet combo architect",
-    bio: "Team captain and founding member. Sieg's deck versatility stands out — Dragon Link and Phantom Knight in WMGR 2024, then Magnet Warrior, Radiant Typhoon and Enneacraft across Jawir 2026. 22W–16L overall.",
+    bio: "Team captain and founding member. Dragon Link and Phantom Knight in WMGR 2024, Unchained in WMGPxA 2024, then Magnet Warrior, Radiant Typhoon and Enneacraft across Jawir 2026. 25W–19L career.",
     gameId: "331-001-777",
     titles: 0,
-    wins: 22,
-    losses: 16,
+    wins: 25,
+    losses: 19,
     mainDeckSlug: "magnet-warrior",
     socials: [],
   },
@@ -384,11 +469,11 @@ export const players: Player[] = [
     name: "DS Yuryevna",
     role: "Member",
     tagline: "Branded control specialist",
-    bio: "The team's most efficient player — 25W–14L across two tournaments, from Mannadium and Tearlaments in WMGR 2024 to a dominant 10–2 Branded Despia run in the Jawir 2026 playoffs. A win rate that speaks for itself.",
+    bio: "The team's most efficient player — Mannadium and Tearlaments in WMGR 2024, Branded Chimera in WMGPxA 2024, and a dominant Branded Despia run in Jawir 2026. 28W–18L career.",
     gameId: "498-595-485",
     titles: 0,
-    wins: 25,
-    losses: 14,
+    wins: 28,
+    losses: 18,
     mainDeckSlug: "branded-despia",
     socials: [],
   },
@@ -397,11 +482,11 @@ export const players: Player[] = [
     name: "DS Cain",
     role: "Vice Captain",
     tagline: "Team ace — never misses",
-    bio: "Cain played every phase of Jawir 2026 with Kewl Tune (33W–21L across 54 games) after grinding Swordsoul and Tri Zoodiac through WMGR 2024. The squad's iron man — 46W–37L career.",
+    bio: "The squad's iron man — Swordsoul and Tri Zoodiac through WMGR 2024, Snake Eyes and Purrely in WMGPxA 2024, then every phase of Jawir 2026 on Kewl Tune. 50W–40L career.",
     gameId: "798-514-613",
     titles: 0,
-    wins: 46,
-    losses: 37,
+    wins: 50,
+    losses: 40,
     mainDeckSlug: "kewl-tune",
     socials: [],
   },
@@ -410,11 +495,11 @@ export const players: Player[] = [
     name: "DS Mev",
     role: "Member",
     tagline: "Blue-Eyes tactician",
-    bio: "A WMGR 2024 mainstay — Mathmech, Gishiki and Snake Eyes across the group stage and Top 8, including a flawless Week 1 sweep. Returned in Jawir 2026 with an Exosister cameo. 18W–19L career.",
+    bio: "Three tournaments, three archetypes each — Mathmech/Gishiki/Snake Eyes in WMGR 2024, Snake Race/R-ACE/Fire King in WMGPxA 2024, then an Exosister cameo in Jawir 2026. 28W–30L career.",
     gameId: "411-280-170",
     titles: 0,
-    wins: 18,
-    losses: 19,
+    wins: 28,
+    losses: 30,
     mainDeckSlug: "blue-eyes",
     socials: [],
   },
@@ -423,11 +508,11 @@ export const players: Player[] = [
     name: "Lonts",
     role: "Member",
     tagline: "Orcust grind machine",
-    bio: "An Orcust main who adapts to whatever the team needs — Labrynth and Branded Bystial in WMGR 2024, then Radiant Typhoon, Vanquish Soul and Branded Despia across Jawir 2026. 28W–25L across all recorded rounds.",
+    bio: "An Orcust main who adapts to whatever the team needs — Labrynth and Branded Bystial in WMGR 2024, Snake Eyes/Purrely/Fire King in WMGPxA 2024, then Radiant Typhoon and Branded Despia in Jawir 2026. 37W–34L career.",
     gameId: "603-946-920",
     titles: 0,
-    wins: 28,
-    losses: 25,
+    wins: 37,
+    losses: 34,
     mainDeckSlug: "orcust",
     socials: [],
   },
@@ -694,6 +779,120 @@ export const tournaments: Tournament[] = [
   },
 
   /* ════════════════════════════════════════════════════════════════════
+   * WMGPxA 2024 — WMCR × AWARS collaboration tournament (4 weeks, group stage).
+   * Cross-check: Σ deck W = Σ player W = 29 · Σ L = 30. ✓
+   * ════════════════════════════════════════════════════════════════════ */
+  {
+    slug: "wmgpxa-2024",
+    name: "WMGPxA 2024",
+    date: "2024-05-07",
+    format: "Team · Best of 3 babaks per match",
+    location: "Online (AWARS — Yu-Gi-Oh Master Duel)",
+    participants: 8,
+    type: "team",
+    ourResult: "Group stage 2–2",
+    results: [],
+    weeks: [
+      /* ── Week 1 · vs Nugget knights · Win 2-1 ───────────────────── */
+      {
+        week: "Week 1",
+        opponentTeam: "Nugget knights",
+        main: ["mev7901", "Lonts94"],
+        sub: ["cain00"],
+        deckList: [
+          { handle: "mev7901", deckName: "Snake Race", deckSlug: "snake-race" },
+          { handle: "Lonts94", deckName: "Purrely",    deckSlug: "purrely" },
+          { handle: "cain00",  deckName: "Snake Eyes", deckSlug: "snake-eyes" },
+        ],
+        matchResult: "win",
+        rounds: [
+          // Babak 1 — Nugget knights Win
+          { dsPlayerHandle: "Lonts94", opponent: "BASALA",    opponentDeck: "Snake eye",  dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "mev7901", opponent: "Meta Mani VAPR", opponentDeck: "Snake Race", dsWins: 2, dsLosses: 1 },
+          // Babak 2 — Nugget knights Win
+          { dsPlayerHandle: "Lonts94", opponent: "neZu",   opponentDeck: "Snake eye",  dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "mev7901", opponent: "BASALA", opponentDeck: "Snake eye",  dsWins: 1, dsLosses: 1 },
+          // Babak 3 — DS Celebeast Win (Cain subs in)
+          { dsPlayerHandle: "Lonts94", opponent: "shurit", opponentDeck: "kash VS",    dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "mev7901", opponent: "neZu",   opponentDeck: "Snake Race", dsWins: 1, dsLosses: 1 },
+          { dsPlayerHandle: "cain00",  opponent: "BASALA", opponentDeck: "Snake eye",  dsWins: 2, dsLosses: 0 },
+        ],
+      },
+
+      /* ── Week 2 · vs Stellar Trace · Loss 0-2 ───────────────────── */
+      {
+        week: "Week 2",
+        opponentTeam: "Stellar Trace",
+        main: ["mev7901", "yuryevna", "Lonts94"],
+        sub: ["cain00"],
+        deckList: [
+          { handle: "mev7901",  deckName: "R-ACE",           deckSlug: "r-ace" },
+          { handle: "yuryevna", deckName: "Branded Chimera", deckSlug: "branded-chimera" },
+          { handle: "Lonts94",  deckName: "Snake Eyes",      deckSlug: "snake-eyes" },
+          { handle: "cain00",   deckName: "Snake Eyes",      deckSlug: "snake-eyes" },
+        ],
+        matchResult: "loss",
+        rounds: [
+          // Babak 1 — Stellar Trace Win
+          { dsPlayerHandle: "mev7901",  opponent: "sakana",    opponentDeck: "SE",       dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "yuryevna", opponent: "Tang",      opponentDeck: "Labrynth", dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "Lonts94",  opponent: "Nightmare", opponentDeck: "SE",       dsWins: 1, dsLosses: 2 },
+          // Babak 2 — Stellar Trace Win (Cain subs in for Lonts)
+          { dsPlayerHandle: "Lonts94",  opponent: "sakana",    opponentDeck: "SE",       dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "yuryevna", opponent: "Tang",      opponentDeck: "Labrynth", dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "cain00",   opponent: "Nightmare", opponentDeck: "SE",       dsWins: 2, dsLosses: 1 },
+        ],
+      },
+
+      /* ── Week 3 · vs スーパーこめかみブラザーズ · Win 2-0 ─────────── */
+      {
+        week: "Week 3",
+        opponentTeam: "スーパーこめかみブラザーズ",
+        main: ["mev7901", "sieg121"],
+        sub: [],
+        deckList: [
+          { handle: "mev7901", deckName: "Snake Eyes", deckSlug: "snake-eyes" },
+          { handle: "sieg121", deckName: "Unchained",  deckSlug: "unchained" },
+        ],
+        matchResult: "win",
+        rounds: [
+          // Babak 1 — DS Celebeast Win
+          { dsPlayerHandle: "mev7901", opponent: "剣闘獣神", opponentDeck: "Labrynth",     dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "sieg121", opponent: "こめかみ", opponentDeck: "Salamangreat", dsWins: 2, dsLosses: 1 },
+          // Babak 2 — DS Celebeast Win
+          { dsPlayerHandle: "mev7901", opponent: "スラリン", opponentDeck: "Purrely",  dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "sieg121", opponent: "ゆるしゅ", opponentDeck: "Branded",  dsWins: 1, dsLosses: 2 },
+        ],
+      },
+
+      /* ── Week 4 · vs Black Material · Loss 0-2 ──────────────────── */
+      {
+        week: "Week 4",
+        opponentTeam: "Black Material",
+        main: ["yuryevna", "mev7901", "Lonts94"],
+        sub: ["cain00"],
+        deckList: [
+          { handle: "yuryevna", deckName: "Branded Chimera", deckSlug: "branded-chimera" },
+          { handle: "mev7901",  deckName: "Fire King",       deckSlug: "fire-king" },
+          { handle: "Lonts94",  deckName: "Fire King",       deckSlug: "fire-king" },
+          { handle: "cain00",   deckName: "Purrely",         deckSlug: "purrely" },
+        ],
+        matchResult: "loss",
+        rounds: [
+          // Babak 1 — Black Material Win
+          { dsPlayerHandle: "yuryevna", opponent: "エアーマン鈴木", opponentDeck: "R-ACE",        dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "mev7901",  opponent: "OZ",            opponentDeck: "Purrely",       dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "Lonts94",  opponent: "cilnof",        opponentDeck: "Salamangreat",  dsWins: 2, dsLosses: 0 },
+          // Babak 2 — Black Material Win (Cain subs in for Yuryevna)
+          { dsPlayerHandle: "cain00",   opponent: "エアーマン鈴木", opponentDeck: "R-ACE",        dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "Lonts94",  opponent: "OZ",            opponentDeck: "Purrely",       dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "mev7901",  opponent: "cilnof",        opponentDeck: "Salamangreat",  dsWins: 1, dsLosses: 2 },
+        ],
+      },
+    ],
+  },
+
+  /* ════════════════════════════════════════════════════════════════════
    * WMGR 2024 — World Master Duel Grand Prix (5 group-stage weeks recorded;
    * playoff scorecards pending from the owner).
    * Cross-check: Σ deck wins = Σ player wins = 59 · Σ losses = 46.
@@ -947,6 +1146,13 @@ const opponentAlias: Record<string, string> = {
   "mannadium":         "mannadium",
   "tearlaments":       "tearlaments",
   "snake eyes":        "snake-eyes",
+  // WMGPxA 2024 opponents
+  "snake eye":         "snake-eyes",
+  "se":                "snake-eyes",
+  "snake race":        "snake-race",
+  "purrely":           "purrely",
+  "r-ace":             "r-ace",
+  "branded":           "branded-chimera",
 };
 
 /** Builds the deck list + head-to-head W/L tally for a tournament, from real round data. */
