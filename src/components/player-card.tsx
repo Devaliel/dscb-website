@@ -6,12 +6,12 @@ import type { Player } from "@/lib/types";
 import { getDeck } from "@/lib/data";
 import { winRate } from "@/lib/utils";
 import CardArt from "./card-art";
+import PlayerAvatar from "./player-avatar";
 
 export default function PlayerCard({ player, index = 0 }: { player: Player; index?: number }) {
   const deck = getDeck(player.mainDeckSlug);
   const accent = deck?.accent ?? "var(--color-brand-400)";
   const wr = winRate(player.wins, player.losses);
-  const initials = player.name.split(" ").map((w) => w[0]).join("").slice(0, 2);
 
   return (
     <motion.div
@@ -22,47 +22,76 @@ export default function PlayerCard({ player, index = 0 }: { player: Player; inde
     >
       <Link
         href={`/players/${player.handle}`}
-        className="group relative block overflow-hidden rounded-2xl border border-white/10 bg-ink-850 transition-colors hover:border-white/20"
-        style={{ boxShadow: `0 18px 50px -32px ${accent}` }}
+        className="group relative block transition-transform duration-200 hover:-rotate-[0.6deg] hover:-translate-y-1"
       >
-        {/* favorite deck art banner */}
-        {deck && (
-          <div className="relative h-24 w-full">
-            <CardArt cardId={deck.signatureCardId} image={deck.image} accent={accent} label={deck.name} />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink-850 via-ink-850/40 to-transparent" />
-            <span
-              className="absolute right-3 top-3 rounded-full px-2.5 py-0.5 text-[10px] font-semibold backdrop-blur"
-              style={{ background: `${accent}28`, color: accent, border: `1px solid ${accent}44` }}
-            >
-              ♥ {deck.name}
-            </span>
-          </div>
-        )}
+        {/* offset accent shape behind the card — P5 sticker look */}
+        <div
+          aria-hidden
+          className="clip-corner absolute inset-0 translate-x-1.5 translate-y-1.5 opacity-50 transition-transform duration-200 group-hover:translate-x-2.5 group-hover:translate-y-2.5"
+          style={{ background: accent }}
+        />
 
-        <div className="relative p-5 pt-0">
+        {/* the card */}
+        <div className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850">
+          {/* deck art background layer */}
+          {deck && (
+            <div className="absolute inset-0 opacity-25 saturate-[1.2] transition-opacity duration-200 group-hover:opacity-40">
+              <CardArt cardId={deck.signatureCardId} image={deck.image} accent={accent} label={deck.name} />
+            </div>
+          )}
+          {/* diagonal gradient wipe */}
           <div
-            className="absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-30 blur-3xl transition-opacity group-hover:opacity-60"
-            style={{ background: accent }}
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(115deg, var(--color-ink-900) 30%, color-mix(in oklab, var(--color-ink-900) 68%, transparent) 60%, color-mix(in oklab, ${accent} 14%, var(--color-ink-900)) 100%)`,
+            }}
           />
-          <div className="relative -mt-7 flex items-end gap-4">
-            <div
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl font-display text-lg font-bold text-white ring-4 ring-ink-850"
-              style={{ background: `linear-gradient(135deg, ${accent}, ${accent}66)`, boxShadow: `0 0 24px -6px ${accent}` }}
-            >
-              {initials}
-            </div>
-            <div className="min-w-0 pb-0.5">
-              <p className="truncate font-display text-lg font-semibold text-fog-100">{player.name}</p>
-              <p className="text-sm" style={{ color: accent }}>{player.role}</p>
-            </div>
-          </div>
+          {/* halftone texture */}
+          <div className="halftone absolute inset-0 opacity-[0.05]" aria-hidden />
 
-          <p className="relative mt-4 text-sm text-fog-500">{player.tagline}</p>
+          <div className="relative flex min-h-[15rem] flex-col p-5">
+            {/* role tag — slanted chip */}
+            <div className="flex items-start justify-between">
+              <span
+                className="-skew-x-12 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white"
+                style={{ background: `color-mix(in oklab, ${accent} 80%, black)` }}
+              >
+                <span className="block skew-x-12">{player.role}</span>
+              </span>
+              {deck && (
+                <span
+                  className="-skew-x-12 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                  style={{ background: "rgba(0,0,0,0.45)", color: accent, border: `1px solid ${accent}55` }}
+                >
+                  <span className="block skew-x-12">♥ {deck.name}</span>
+                </span>
+              )}
+            </div>
 
-          <div className="relative mt-5 grid grid-cols-3 gap-2 text-center">
-            <Stat v={`${wr}%`} l="Win rate" />
-            <Stat v={player.titles} l="Titles" />
-            <Stat v={player.wins + player.losses} l="Games" />
+            {/* avatar cutout — bottom right */}
+            <div className="pointer-events-none absolute -bottom-1 -right-2 h-40 w-36">
+              <PlayerAvatar player={player} accent={accent} size="card" className="h-full w-full" />
+            </div>
+
+            {/* name on skewed accent band */}
+            <div className="relative mt-auto max-w-[70%]">
+              <div
+                className="-rotate-2 -skew-x-6 px-3 py-1.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+                style={{ background: accent, boxShadow: `4px 4px 0 rgba(0,0,0,0.45)` }}
+              >
+                <p className="skew-x-6 truncate font-display text-xl font-extrabold uppercase italic tracking-tight text-ink-950">
+                  {player.name}
+                </p>
+              </div>
+              <p className="mt-2.5 pl-1 text-xs text-fog-500">{player.tagline}</p>
+            </div>
+
+            {/* slanted stat chips */}
+            <div className="relative mt-4 flex max-w-[72%] gap-2">
+              <Stat v={`${wr}%`} l="Win rate" />
+              <Stat v={player.titles} l="Titles" />
+              <Stat v={player.wins + player.losses} l="Games" />
+            </div>
           </div>
         </div>
       </Link>
@@ -72,9 +101,11 @@ export default function PlayerCard({ player, index = 0 }: { player: Player; inde
 
 function Stat({ v, l }: { v: string | number; l: string }) {
   return (
-    <div className="rounded-xl bg-white/5 py-2">
-      <p className="font-display text-lg font-bold text-fog-100">{v}</p>
-      <p className="text-[11px] text-fog-500">{l}</p>
+    <div className="-skew-x-12 flex-1 border border-white/10 bg-black/40 py-1.5 text-center backdrop-blur-sm">
+      <div className="skew-x-12">
+        <p className="font-display text-base font-bold leading-tight text-fog-100">{v}</p>
+        <p className="text-[10px] uppercase tracking-wider text-fog-600">{l}</p>
+      </div>
     </div>
   );
 }

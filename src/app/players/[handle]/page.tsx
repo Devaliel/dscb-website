@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import StatCard from "@/components/stat-card";
 import CardArt from "@/components/card-art";
 import DeckChip from "@/components/deck-chip";
+import PlayerAvatar from "@/components/player-avatar";
 import { Reveal } from "@/components/reveal";
 import { getPlayer, getPlayers, getDeck, getTournaments } from "@/lib/data";
 import { winRate } from "@/lib/utils";
@@ -30,7 +31,6 @@ export default async function PlayerPage({ params }: { params: Promise<{ handle:
   const deck = getDeck(player.mainDeckSlug);
   const accent = deck?.accent ?? "var(--color-brand-400)";
   const wr = winRate(player.wins, player.losses);
-  const initials = player.name.split(" ").map((w) => w[0]).join("").slice(0, 2);
 
   const finishes = getTournaments()
     .flatMap((t) => t.results.filter((r) => r.playerHandle === player.handle).map((r) => ({ ...r, event: t })))
@@ -52,17 +52,45 @@ export default async function PlayerPage({ params }: { params: Promise<{ handle:
             ← Roster
           </Link>
           <Reveal>
-            <div className="flex flex-wrap items-center gap-6">
-              <div
-                className="grid h-24 w-24 place-items-center rounded-3xl font-display text-3xl font-bold text-white"
-                style={{ background: `linear-gradient(135deg, ${accent}, ${accent}55)`, boxShadow: `0 0 50px -10px ${accent}` }}
-              >
-                {initials}
+            <div className="flex flex-wrap items-end gap-8">
+              {/* angular avatar frame with offset accent shape */}
+              <div className="relative shrink-0">
+                <div
+                  aria-hidden
+                  className="absolute inset-0 translate-x-2 translate-y-2 opacity-60"
+                  style={{
+                    background: accent,
+                    clipPath: "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))",
+                  }}
+                />
+                <div
+                  className="relative grid h-44 w-44 place-items-end overflow-hidden border border-white/15 bg-ink-850"
+                  style={{ clipPath: "polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px))" }}
+                >
+                  <div className="halftone absolute inset-0 opacity-[0.06]" aria-hidden />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(160deg, transparent 40%, color-mix(in oklab, ${accent} 22%, transparent))` }}
+                  />
+                  <PlayerAvatar player={player} accent={accent} size="hero" className="relative h-40 w-full" />
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium" style={{ color: accent }}>{player.role}</p>
-                <h1 className="font-display text-4xl font-bold text-fog-100 sm:text-6xl">{player.name}</h1>
-                <p className="mt-2 text-lg text-fog-500">{player.tagline}</p>
+
+              <div className="pb-1">
+                <span
+                  className="inline-block -skew-x-12 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-white"
+                  style={{ background: `color-mix(in oklab, ${accent} 80%, black)` }}
+                >
+                  <span className="block skew-x-12">{player.role}</span>
+                </span>
+                <h1 className="mt-3 -rotate-1 font-display text-4xl font-extrabold uppercase italic tracking-tight text-fog-100 sm:text-6xl">
+                  {player.name}
+                </h1>
+                <div
+                  className="mt-2 h-1.5 w-28 -skew-x-12"
+                  style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }}
+                />
+                <p className="mt-3 text-lg text-fog-500">{player.tagline}</p>
                 {player.gameId && (
                   <p className="mt-3 inline-block rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs text-fog-500">
                     ID&nbsp;{player.gameId}
