@@ -154,34 +154,65 @@ export default function Hero({
 function HeroArt({ src, glow }: { src: string; glow: string }) {
   const [ok, setOk] = useState(true);
   if (!ok) return null;
+
+  // soft fade on the sides only — feet stay visible
+  const mask =
+    "radial-gradient(ellipse 78% 110% at 50% 42%, black 55%, transparent 96%)";
+  // solid-color silhouette via alpha mask of the PNG itself
+  const silhouette = (color: string): React.CSSProperties => ({
+    position: "absolute",
+    inset: 0,
+    background: color,
+    maskImage: `url(${src})`,
+    WebkitMaskImage: `url(${src})`,
+    maskSize: "contain",
+    WebkitMaskSize: "contain",
+    maskRepeat: "no-repeat",
+    WebkitMaskRepeat: "no-repeat",
+    maskPosition: "bottom",
+    WebkitMaskPosition: "bottom",
+  });
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: 60 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 1.4, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, x: 120, skewX: -6 }}
+      animate={{ opacity: 1, x: 0, skewX: 0 }}
+      transition={{ duration: 0.9, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="pointer-events-none absolute -right-8 bottom-0 -z-[5] hidden select-none lg:block xl:right-6 2xl:right-24"
       aria-hidden
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        draggable={false}
-        onError={() => setOk(false)}
-        className="hero-art-r"
-        style={{
-          height: "40rem",
-          width: "auto",
-          objectFit: "contain",
-          marginBottom: "-4rem",
-          opacity: 0.5,
-          filter: `saturate(1.05) drop-shadow(0 0 70px color-mix(in oklab, ${glow} 45%, transparent))`,
-          maskImage:
-            "radial-gradient(ellipse 72% 74% at 52% 38%, black 38%, transparent 82%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 72% 74% at 52% 38%, black 38%, transparent 82%)",
-        }}
-      />
+      <motion.div
+        className="hero-art-r relative"
+        style={{ height: "38rem", width: "26rem", maskImage: mask, WebkitMaskImage: mask }}
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+      >
+        {/* Persona-style colored echoes behind the cutout */}
+        <motion.div
+          style={{ ...silhouette("var(--color-cyber-500)"), opacity: 0.28 }}
+          animate={{ x: [-10, -16, -10], y: [8, 12, 8] }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          style={{ ...silhouette("var(--color-brand-500)"), opacity: 0.32 }}
+          animate={{ x: [10, 16, 10], y: [-6, -10, -6] }}
+          transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        {/* the character */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          onError={() => setOk(false)}
+          className="relative h-full w-full object-contain object-bottom"
+          style={{
+            opacity: 0.85,
+            filter: `saturate(1.05) drop-shadow(0 0 60px color-mix(in oklab, ${glow} 50%, transparent))`,
+          }}
+        />
+      </motion.div>
     </motion.div>
   );
 }
