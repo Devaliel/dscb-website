@@ -4,13 +4,16 @@ import Image from "next/image";
 import PageHeader from "@/components/page-header";
 import { Reveal } from "@/components/reveal";
 import Star from "@/components/persona/star";
-import { getPosts } from "@/lib/blog";
+import { fetchPosts } from "@/lib/blog-db";
 import { getPlayer } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "Blog",
   description: "Tournament recaps, deck primers and team news from DSCB.",
 };
+
+// re-check Supabase for new posts every 60s
+export const revalidate = 60;
 
 const TAG_COLOR: Record<string, string> = {
   Meta: "var(--color-flare-400)",
@@ -30,8 +33,8 @@ function TagChip({ tag }: { tag: string }) {
   );
 }
 
-export default function BlogPage() {
-  const [featured, ...rest] = getPosts();
+export default async function BlogPage() {
+  const [featured, ...rest] = await fetchPosts();
   const featuredAuthor = getPlayer(featured.authorHandle);
 
   return (

@@ -5,11 +5,16 @@ import { notFound } from "next/navigation";
 import { Reveal } from "@/components/reveal";
 import PlayerAvatar from "@/components/player-avatar";
 import Star from "@/components/persona/star";
-import { getPost, getPosts } from "@/lib/blog";
+import { getPosts as getStaticPosts } from "@/lib/blog";
+import { fetchPost, fetchPosts } from "@/lib/blog-db";
 import { getPlayer, getDeck } from "@/lib/data";
 
+// pre-render placeholder posts; render new DB slugs on demand, refresh every 60s
+export const revalidate = 60;
+export const dynamicParams = true;
+
 export function generateStaticParams() {
-  return getPosts().map((p) => ({ slug: p.slug }));
+  return getStaticPosts().map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -18,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await fetchPost(slug);
   return { title: post ? post.title : "Post", description: post?.excerpt };
 }
 
@@ -31,13 +36,13 @@ const TAG_COLOR: Record<string, string> = {
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await fetchPost(slug);
   if (!post) notFound();
 
   const author = getPlayer(post.authorHandle);
   const authorDeck = author ? getDeck(author.mainDeckSlug) : undefined;
   const accent = TAG_COLOR[post.tag] ?? "var(--color-brand-500)";
-  const more = getPosts().filter((p) => p.slug !== post.slug).slice(0, 2);
+  const more = (await fetchPosts()).filter((p) => p.slug !== post.slug).slice(0, 2);
 
   return (
     <>

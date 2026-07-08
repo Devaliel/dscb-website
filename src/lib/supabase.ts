@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Read-only Supabase client for server components.
@@ -17,4 +17,18 @@ export function getSupabase() {
     );
   }
   return createClient(url!, anon!, { auth: { persistSession: false } });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let browserClient: SupabaseClient<any, "public", any> | null = null;
+
+/** Browser client with a persisted auth session — used by the /admin page. */
+export function getBrowserSupabase() {
+  if (!supabaseEnabled) {
+    throw new Error("Supabase env vars missing.");
+  }
+  if (!browserClient) {
+    browserClient = createClient(url!, anon!, { auth: { persistSession: true } });
+  }
+  return browserClient;
 }

@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  images: {
+    // blog covers may be pasted as external URLs from the admin editor
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
+  },
 };
 
 export default nextConfig;
