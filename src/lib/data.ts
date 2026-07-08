@@ -886,6 +886,29 @@ export function getDecks() {
       return winRate(b.wins, b.losses) - winRate(a.wins, a.losses);
     });
 }
+/** Decks grouped by tournament (newest first). Each section only includes decks
+ *  that appeared in that tournament's lineups, sorted by per-tournament lineup slots. */
+export function getDecksByTournament(): { slug: string; name: string; ourResult?: string; decks: import("./types").Deck[] }[] {
+  return getTournaments()
+    .filter((t) => t.weeks && t.weeks.length > 0)
+    .map((t) => {
+      // count lineup slots per deck within this tournament
+      const localCount: Record<string, number> = {};
+      for (const w of t.weeks!)
+        for (const d of w.deckList)
+          if (d.deckSlug) localCount[d.deckSlug] = (localCount[d.deckSlug] ?? 0) + 1;
+
+      const tDecks = decks
+        .filter((d) => d.slug in localCount)
+        .sort((a, b) => {
+          const diff = (localCount[b.slug] ?? 0) - (localCount[a.slug] ?? 0);
+          return diff !== 0 ? diff : winRate(b.wins, b.losses) - winRate(a.wins, a.losses);
+        });
+
+      return { slug: t.slug, name: t.name, ourResult: t.ourResult, decks: tDecks };
+    });
+}
+
 /** Every deck, including player favorites never fielded in a lineup */
 export function getAllDecks() {
   return decks;
