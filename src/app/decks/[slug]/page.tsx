@@ -3,9 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import CardArt from "@/components/card-art";
 import StatCard from "@/components/stat-card";
+import PlayerAvatar from "@/components/player-avatar";
 import { Reveal } from "@/components/reveal";
 import TierBadge from "@/components/tier-badge";
-import { getDeck, getAllDecks, getTournaments, getPlayer } from "@/lib/data";
+import { getDeck, getAllDecks, getDeckUsage, getDeckPilots } from "@/lib/data";
 import { cardImageSmall } from "@/lib/ygoprodeck";
 import { winRate, TIER_LABEL } from "@/lib/utils";
 
@@ -29,9 +30,8 @@ export default async function DeckPage({ params }: { params: Promise<{ slug: str
   if (!deck) notFound();
 
   const wr = winRate(deck.wins, deck.losses);
-  const pilots = getTournaments()
-    .flatMap((t) => t.results.filter((r) => r.deckSlug === deck.slug).map((r) => ({ ...r, event: t })))
-    .slice(0, 5);
+  const pilots = getDeckPilots(deck.slug);
+  const usage = getDeckUsage(deck.slug);
 
   return (
     <>
@@ -46,7 +46,7 @@ export default async function DeckPage({ params }: { params: Promise<{ slug: str
             </Link>
             <div className="flex flex-wrap items-center gap-4">
               <TierBadge tier={deck.tier} size="lg" />
-              <h1 className="font-display text-4xl font-bold text-fog-100 sm:text-6xl">{deck.name}</h1>
+              <h1 className="text-persona text-4xl text-fog-100 sm:text-6xl">{deck.name}</h1>
               {deck.tier && (
                 <span
                   className="rounded-full px-3 py-1 text-sm font-medium"
@@ -70,14 +70,98 @@ export default async function DeckPage({ params }: { params: Promise<{ slug: str
           <StatCard label="Games" value={deck.wins + deck.losses} accent={deck.accent} />
         </div>
 
-        <div className="mt-14 grid gap-12 lg:grid-cols-[1.4fr_1fr]">
-          {/* sample list */}
+        <div className="mt-14 grid gap-12 lg:grid-cols-[1fr_1.4fr]">
+          {/* pilots */}
           <div>
-            <h2 className="mb-6 font-display text-2xl font-bold text-fog-100">Sample decklist</h2>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <h2 className="text-persona mb-6 text-2xl text-fog-100">Pilots</h2>
+            <div className="space-y-3">
+              {pilots.length === 0 && <p className="text-sm text-fog-500">No pilots recorded yet.</p>}
+              {pilots.map(({ player, wins, losses, phases }) => (
+                <Link
+                  key={player!.handle}
+                  href={`/players/${player!.handle}`}
+                  className="clip-corner group relative flex items-center gap-4 border border-white/10 bg-ink-850 p-4 transition-transform hover:-translate-y-0.5"
+                  style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.45)" }}
+                >
+                  <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+                  <div className="h-12 w-12 shrink-0 overflow-hidden">
+                    <PlayerAvatar player={player!} accent={deck.accent} size="card" className="h-full w-full" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-persona truncate text-base text-fog-100 group-hover:text-white">
+                      {player!.name}
+                    </p>
+                    <p className="text-xs text-fog-500">
+                      {phases} phase{phases !== 1 ? "s" : ""} piloted
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="font-display text-lg font-extrabold italic" style={{ color: deck.accent }}>
+                      {wins}–{losses}
+                    </p>
+                    {wins + losses > 0 && (
+                      <p className="text-[11px] text-fog-500">{winRate(wins, losses)}% WR</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* tournament history — every phase this deck was fielded */}
+          <div>
+            <h2 className="text-persona mb-6 text-2xl text-fog-100">Tournament history</h2>
+            {usage.length === 0 ? (
+              <p className="text-sm text-fog-500">Not fielded in a recorded tournament yet.</p>
+            ) : (
+              <div className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850">
+                <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+                <div className="relative divide-y divide-white/[0.06]">
+                  {usage.map((u, i) => (
+                    <Link
+                      key={i}
+                      href={`/tournaments/${u.tournamentSlug}`}
+                      className="flex items-center gap-3 px-5 py-3 transition-colors hover:bg-white/[0.04]"
+                    >
+                      <div className="w-28 shrink-0">
+                        <p className="text-persona text-sm text-fog-100">{u.week}</p>
+                        <p className="truncate text-[11px] text-fog-600">{u.tournamentName}</p>
+                      </div>
+                      <div className="min-w-0 flex-1 text-xs text-fog-500">
+                        <span className="text-fog-300">{u.playerHandle && (u.isSub ? "sub · " : "")}{pilots.find((p) => p.player!.handle === u.playerHandle)?.player!.name ?? u.playerHandle}</span>
+                        {u.opponentTeam && <span> vs {u.opponentTeam}</span>}
+                      </div>
+                      <span className="shrink-0 text-sm font-bold tabular-nums" style={{ color: deck.accent }}>
+                        {u.wins}–{u.losses}
+                      </span>
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        title={u.matchResult ?? "pending"}
+                        style={{
+                          background:
+                            u.matchResult === "win"
+                              ? "var(--color-brand-400)"
+                              : u.matchResult === "loss"
+                              ? "var(--color-cyber-500)"
+                              : "var(--color-fog-600)",
+                        }}
+                      />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* sample list — only when cards are provided */}
+        {deck.sampleList.length > 0 && (
+          <div className="mt-14">
+            <h2 className="text-persona mb-6 text-2xl text-fog-100">Sample decklist</h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
               {deck.sampleList.map((card, i) => (
                 <Reveal key={card.name} delay={i * 0.05}>
-                  <div className="group overflow-hidden rounded-xl border border-white/10 bg-ink-850">
+                  <div className="clip-corner group overflow-hidden border border-white/10 bg-ink-850">
                     <div className="relative aspect-[3/4] overflow-hidden bg-ink-800">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -87,10 +171,10 @@ export default async function DeckPage({ params }: { params: Promise<{ slug: str
                         className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       />
                       <span
-                        className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-lg text-sm font-bold text-white backdrop-blur"
+                        className="absolute right-2 top-2 grid h-7 w-7 -skew-x-6 place-items-center text-sm font-bold text-white backdrop-blur"
                         style={{ background: `${deck.accent}cc` }}
                       >
-                        {card.count}
+                        <span className="skew-x-6">{card.count}</span>
                       </span>
                     </div>
                     <p className="truncate px-3 py-2 text-xs text-fog-300">{card.name}</p>
@@ -99,37 +183,7 @@ export default async function DeckPage({ params }: { params: Promise<{ slug: str
               ))}
             </div>
           </div>
-
-          {/* pilots */}
-          <div>
-            <h2 className="mb-6 font-display text-2xl font-bold text-fog-100">Recent finishes</h2>
-            <div className="space-y-3">
-              {pilots.length === 0 && <p className="text-sm text-fog-500">No recorded finishes yet.</p>}
-              {pilots.map((p, i) => {
-                const player = getPlayer(p.playerHandle);
-                return (
-                  <Link
-                    key={i}
-                    href={`/tournaments/${p.event.slug}`}
-                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-ink-850 p-4 transition-colors hover:border-white/20"
-                  >
-                    <span
-                      className="grid h-9 w-9 place-items-center rounded-lg font-display font-bold"
-                      style={{ color: deck.accent, background: `${deck.accent}1f` }}
-                    >
-                      {p.placement}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-fog-100">{player?.name}</p>
-                      <p className="truncate text-xs text-fog-500">{p.event.name}</p>
-                    </div>
-                    <span className="text-xs text-fog-500">{p.wins}–{p.losses}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </>
   );

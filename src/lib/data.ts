@@ -663,3 +663,56 @@ export function getTournamentMetaAnalyst(slug: string) {
 
   return { topDeck, best, worst: sameMatchup ? null : worst };
 }
+
+/** Every phase a deck was fielded in, across all team tournaments — with pilot and W/L. */
+export function getDeckUsage(deckSlug: string) {
+  const usage: {
+    tournamentSlug: string;
+    tournamentName: string;
+    week: string;
+    opponentTeam?: string;
+    playerHandle: string;
+    isSub: boolean;
+    wins: number;
+    losses: number;
+    matchResult?: "win" | "loss";
+  }[] = [];
+
+  for (const t of getTournaments()) {
+    if (!t.weeks) continue;
+    for (const w of t.weeks) {
+      for (const entry of w.deckList) {
+        if (entry.deckSlug !== deckSlug) continue;
+        const myRounds = (w.rounds ?? []).filter((r) => r.dsPlayerHandle === entry.handle);
+        usage.push({
+          tournamentSlug: t.slug,
+          tournamentName: t.name,
+          week: w.week,
+          opponentTeam: w.opponentTeam,
+          playerHandle: entry.handle,
+          isSub: w.sub.includes(entry.handle),
+          wins: myRounds.reduce((s, r) => s + r.dsWins, 0),
+          losses: myRounds.reduce((s, r) => s + r.dsLosses, 0),
+          matchResult: w.matchResult,
+        });
+      }
+    }
+  }
+  return usage;
+}
+
+/** Aggregated per-pilot record on a deck, from real round data. */
+export function getDeckPilots(deckSlug: string) {
+  const byHandle = new Map<string, { wins: number; losses: number; phases: number }>();
+  for (const u of getDeckUsage(deckSlug)) {
+    const cur = byHandle.get(u.playerHandle) ?? { wins: 0, losses: 0, phases: 0 };
+    cur.wins += u.wins;
+    cur.losses += u.losses;
+    cur.phases += 1;
+    byHandle.set(u.playerHandle, cur);
+  }
+  return [...byHandle.entries()]
+    .map(([handle, rec]) => ({ player: getPlayer(handle), ...rec }))
+    .filter((p) => p.player)
+    .sort((a, b) => b.wins + b.losses - (a.wins + a.losses));
+}
