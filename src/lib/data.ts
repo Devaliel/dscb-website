@@ -189,7 +189,7 @@ export const decks: Deck[] = [
     losses: 6,
     usageCount: 2,
     description:
-      "Shared between Lonts (a perfect 3-0 match run vs YD(A) in Week 2) and DSmajinboo (Week 4). Trap-heavy furniture control — 7W–6L in WMGR 2024.",
+      "Shared between Lonts (a perfect 3-0 match run vs YD(A) in Week 2) and DS Awarix (Week 4). Trap-heavy furniture control — 7W–6L in WMGR 2024.",
     pilotHandles: ["Lonts94", "awarix"],
     sampleList: [],
   },
@@ -430,7 +430,7 @@ export const decks: Deck[] = [
     losses: 0,
     usageCount: 0,
     description:
-      "DSmajinboo's chaotic combo deck. P.U.N.K. Special Summons from the hand and GY at minimal cost, building devastating boards in a single turn.",
+      "DS Awarix's chaotic combo deck. P.U.N.K. Special Summons from the hand and GY at minimal cost, building devastating boards in a single turn.",
     pilotHandles: ["awarix"],
     sampleList: [],
   },
@@ -518,10 +518,10 @@ export const players: Player[] = [
   },
   {
     handle: "awarix",
-    name: "DSmajinboo",
+    name: "DS Awarix",
     role: "Member",
     tagline: "P.U.N.K. chaos engine",
-    bio: "DSmajinboo's P.U.N.K. deck defies convention — a one-turn combo specialist who builds intimidating boards. Made his tournament debut on Labrynth in Week 4 of WMGR 2024.",
+    bio: "DS Awarix's P.U.N.K. deck defies convention — a one-turn combo specialist who builds intimidating boards. Made his tournament debut on Labrynth in Week 4 of WMGR 2024.",
     gameId: "434-385-335",
     titles: 0,
     wins: 1,
