@@ -84,11 +84,11 @@ export const decks: Deck[] = [
     accent: "#6366F1",
     signatureCardId: 0,
     image: "/deck-art/vanquish-soul.jpg",
-    wins: 7,
-    losses: 8,
-    usageCount: 4,
+    wins: 11,
+    losses: 9,
+    usageCount: 5,
     description:
-      "The VS K9 variant, shared between Darkzill (W2, W4, SF sub) and Lonts (W3 sub). A stun-flavoured midrange engine that trades evenly with the field. 7W–8L.",
+      "The team's evergreen stun-midrange engine. Darkzill and Lonts shared the VS K9 variant across Jawir 2026, and Lonts went 4–1 with it subbing into Week 5 of WMGR 2024. 11W–9L overall.",
     pilotHandles: ["Darkzill", "Lonts94"],
     sampleList: [],
   },
@@ -148,6 +148,161 @@ export const decks: Deck[] = [
     description:
       "Mev's tournament debut deck — subbed into Week 5 against Black EOS for a hard-fought 2W–4L. The GY-hating nuns will be back.",
     pilotHandles: ["mev7901"],
+    sampleList: [],
+  },
+  /* ── WMGR 2024 archetypes ─────────────────────────────────────────── */
+  {
+    slug: "swordsoul",
+    name: "Swordsoul",
+    accent: "#67E8F9",
+    signatureCardId: 0,
+    image: "/deck-art/swordsoul.jpg",
+    wins: 11,
+    losses: 8,
+    usageCount: 3,
+    description:
+      "Cain's WMGR 2024 workhorse — fielded in Weeks 2, 3 and 4 for 11W–8L, including a clean 4–1 sweep of Exclusion. Synchro midrange with an answer for everything.",
+    pilotHandles: ["cain00"],
+    sampleList: [],
+  },
+  {
+    slug: "mannadium",
+    name: "Mannadium",
+    accent: "#34D399",
+    signatureCardId: 0,
+    image: "/deck-art/mannadium.jpg",
+    wins: 8,
+    losses: 3,
+    usageCount: 2,
+    description:
+      "Yuryevna's WMGR 2024 pick for Weeks 2 and 3 — 8W–3L, dropping only three games across two team wins. The Visas Starfrost engine at its peak.",
+    pilotHandles: ["yuryevna"],
+    sampleList: [],
+  },
+  {
+    slug: "labrynth",
+    name: "Labrynth",
+    accent: "#E11D48",
+    signatureCardId: 0,
+    image: "/deck-art/labrynth.jpg",
+    wins: 7,
+    losses: 6,
+    usageCount: 2,
+    description:
+      "Shared between Lonts (a perfect 3-0 match run vs YD(A) in Week 2) and DSmajinboo (Week 4). Trap-heavy furniture control — 7W–6L in WMGR 2024.",
+    pilotHandles: ["Lonts94", "awarix"],
+    sampleList: [],
+  },
+  {
+    slug: "mathmech",
+    name: "Mathmech",
+    accent: "#38BDF8",
+    signatureCardId: 0,
+    image: "/deck-art/mathmech.jpg",
+    wins: 6,
+    losses: 4,
+    usageCount: 2,
+    description:
+      "Mev's WMGR 2024 opener — a flawless 3-0 match sweep of 珍獣戦線 in Week 1. Cyberse combo with one-card starters. 6W–4L overall.",
+    pilotHandles: ["mev7901"],
+    sampleList: [],
+  },
+  {
+    slug: "gishiki",
+    name: "Gishiki",
+    accent: "#F43F5E",
+    signatureCardId: 0,
+    image: "/deck-art/gishiki.jpg",
+    wins: 5,
+    losses: 3,
+    usageCount: 1,
+    description:
+      "Mev's ritual tech for Week 4 of WMGR 2024 — 5W–3L against YD(B), taking two of three rounds against Vanquish Soul.",
+    pilotHandles: ["mev7901"],
+    sampleList: [],
+  },
+  {
+    slug: "phantom-knight",
+    name: "Phantom Knight",
+    accent: "#818CF8",
+    signatureCardId: 0,
+    image: "/deck-art/phantom-knight.jpg",
+    wins: 4,
+    losses: 1,
+    usageCount: 1,
+    description:
+      "Sieg's Week 3 pick in WMGR 2024 — a 4–1 run that helped sweep Exclusion 2-0. Ghost-fiend grind with Xyz flexibility.",
+    pilotHandles: ["sieg121"],
+    sampleList: [],
+  },
+  {
+    slug: "dragon-link",
+    name: "Dragon Link",
+    accent: "#F97316",
+    signatureCardId: 0,
+    image: "/deck-art/dragon-link.jpg",
+    wins: 4,
+    losses: 5,
+    usageCount: 1,
+    description:
+      "Sieg's Week 1 combo pick in WMGR 2024 — clutched the deciding round against Kashtira after two narrow losses. 4W–5L.",
+    pilotHandles: ["sieg121"],
+    sampleList: [],
+  },
+  {
+    slug: "branded-bystial",
+    name: "Branded Bystial",
+    accent: "#B45309",
+    signatureCardId: 0,
+    image: "/deck-art/branded-despia.jpg",
+    wins: 3,
+    losses: 5,
+    usageCount: 1,
+    description:
+      "Lonts's Week 1 deck in WMGR 2024 — the Bystial-flavoured Branded variant. 3W–5L against 珍獣戦線's own Bystial pilot.",
+    pilotHandles: ["Lonts94"],
+    sampleList: [],
+  },
+  {
+    slug: "snake-eyes",
+    name: "Snake Eyes",
+    accent: "#FB923C",
+    signatureCardId: 0,
+    image: "/deck-art/snake-eyes.jpg",
+    wins: 3,
+    losses: 6,
+    usageCount: 2,
+    description:
+      "Double-fielded by Mev and Yuryevna in Week 5 of WMGR 2024 against Stellar Trace — including a Snake Eyes mirror that Mev took 2-0. 3W–6L.",
+    pilotHandles: ["mev7901", "yuryevna"],
+    sampleList: [],
+  },
+  {
+    slug: "tearlaments",
+    name: "Tearlaments",
+    accent: "#60A5FA",
+    signatureCardId: 0,
+    image: "/deck-art/tearlaments.jpg",
+    wins: 2,
+    losses: 0,
+    usageCount: 1,
+    description:
+      "Yuryevna's perfect cameo — subbed into Week 4, Babak 3 of WMGR 2024 and swept Labrynth 2-0 to close out the match against YD(B).",
+    pilotHandles: ["yuryevna"],
+    sampleList: [],
+  },
+  {
+    slug: "tri-zoodiac",
+    name: "Tri Zoodiac",
+    accent: "#FACC15",
+    signatureCardId: 0,
+    image: "/deck-art/tri-zoodiac.jpg",
+    wins: 2,
+    losses: 4,
+    usageCount: 1,
+    description:
+      "Cain's Week 5 experiment in WMGR 2024 — the Tri-Brigade Zoodiac hybrid. 2W–4L in a tough matchup spread against Stellar Trace.",
+    pilotHandles: ["cain00"],
     sampleList: [],
   },
   {
@@ -216,11 +371,11 @@ export const players: Player[] = [
     name: "DS Sieg",
     role: "Captain",
     tagline: "Magnet combo architect",
-    bio: "Team captain and founding member. Sieg's deck versatility stands out — Magnet Warrior in W1 and W4, Radiant Typhoon in the Semi-Final, and Enneacraft in the Final. 14W–10L overall.",
+    bio: "Team captain and founding member. Sieg's deck versatility stands out — Dragon Link and Phantom Knight in WMGR 2024, then Magnet Warrior, Radiant Typhoon and Enneacraft across Jawir 2026. 22W–16L overall.",
     gameId: "331-001-777",
     titles: 0,
-    wins: 14,
-    losses: 10,
+    wins: 22,
+    losses: 16,
     mainDeckSlug: "magnet-warrior",
     socials: [],
   },
@@ -229,11 +384,11 @@ export const players: Player[] = [
     name: "DS Yuryevna",
     role: "Member",
     tagline: "Branded control specialist",
-    bio: "The team's most efficient player — 14W–5L overall, including a dominant 10–2 with Branded Despia across the Quarter-Final and the Final. A win rate that speaks for itself.",
+    bio: "The team's most efficient player — 24W–10L across two tournaments, from Mannadium and Tearlaments in WMGR 2024 to a dominant 10–2 Branded Despia run in the Jawir 2026 playoffs. A win rate that speaks for itself.",
     gameId: "498-595-485",
     titles: 0,
-    wins: 14,
-    losses: 5,
+    wins: 24,
+    losses: 10,
     mainDeckSlug: "branded-despia",
     socials: [],
   },
@@ -242,11 +397,11 @@ export const players: Player[] = [
     name: "DS Cain",
     role: "Vice Captain",
     tagline: "Team ace — never misses",
-    bio: "Cain played every phase of Jawir 2026 with Kewl Tune, accumulating 33W–21L across 54 individual games. The squad's iron man — when Kewl Tune is in the lineup, Cain is in the game.",
+    bio: "Cain played every phase of Jawir 2026 with Kewl Tune (33W–21L across 54 games) after grinding Swordsoul and Tri Zoodiac through WMGR 2024. The squad's iron man — 46W–33L career.",
     gameId: "798-514-613",
     titles: 0,
-    wins: 33,
-    losses: 21,
+    wins: 46,
+    losses: 33,
     mainDeckSlug: "kewl-tune",
     socials: [],
   },
@@ -255,11 +410,11 @@ export const players: Player[] = [
     name: "DS Mev",
     role: "Member",
     tagline: "Blue-Eyes tactician",
-    bio: "Mev's first tournament appearance came in Week 5 as a substitute, piloting Exosister to a 2W–4L record against Black EOS. A cerebral player still finding his footing in the team meta.",
+    bio: "A WMGR 2024 mainstay — Mathmech, Gishiki and Snake Eyes carried Mev to 14W–11L there, including a flawless Week 1 sweep. Returned in Jawir 2026 with an Exosister cameo. 16W–15L career.",
     gameId: "411-280-170",
     titles: 0,
-    wins: 2,
-    losses: 4,
+    wins: 16,
+    losses: 15,
     mainDeckSlug: "blue-eyes",
     socials: [],
   },
@@ -268,11 +423,11 @@ export const players: Player[] = [
     name: "Lonts",
     role: "Member",
     tagline: "Orcust grind machine",
-    bio: "An Orcust main who adapts to whatever the team needs — Radiant Typhoon in W1/W5/QF/Final, Vanquish Soul in W3, Branded Despia in the Semi-Final. 15W–17L across all recorded rounds.",
+    bio: "An Orcust main who adapts to whatever the team needs — Labrynth and Branded Bystial in WMGR 2024, then Radiant Typhoon, Vanquish Soul and Branded Despia across Jawir 2026. 28W–25L across all recorded rounds.",
     gameId: "603-946-920",
     titles: 0,
-    wins: 15,
-    losses: 17,
+    wins: 28,
+    losses: 25,
     mainDeckSlug: "orcust",
     socials: [],
   },
@@ -281,11 +436,11 @@ export const players: Player[] = [
     name: "DSmajinboo",
     role: "Member",
     tagline: "P.U.N.K. chaos engine",
-    bio: "DSmajinboo's P.U.N.K. deck defies convention — a one-turn combo specialist who builds intimidating boards and punishes any hesitation from the opponent.",
+    bio: "DSmajinboo's P.U.N.K. deck defies convention — a one-turn combo specialist who builds intimidating boards. Made his tournament debut on Labrynth in Week 4 of WMGR 2024.",
     gameId: "434-385-335",
     titles: 0,
-    wins: 0,
-    losses: 0,
+    wins: 1,
+    losses: 4,
     mainDeckSlug: "punk",
     socials: [],
   },
@@ -537,6 +692,163 @@ export const tournaments: Tournament[] = [
       },
     ],
   },
+
+  /* ════════════════════════════════════════════════════════════════════
+   * WMGR 2024 — World Master Duel Grand Prix (5 group-stage weeks recorded;
+   * playoff scorecards pending from the owner).
+   * Cross-check: Σ deck wins = Σ player wins = 59 · Σ losses = 46.
+   * ════════════════════════════════════════════════════════════════════ */
+  {
+    slug: "wmgr-2024",
+    name: "WMGR 2024",
+    date: "2024-01-19",
+    format: "Team · Best of 3 babaks per match",
+    location: "Online (World Master Duel Grand Prix)",
+    participants: 8,
+    type: "team",
+    ourResult: "Group stage 4–1 · playoffs TBD",
+    results: [],
+    weeks: [
+      /* ── Week 1 · vs 珍獣戦線 · Win 2-1 ──────────────────────────── */
+      {
+        week: "Week 1",
+        opponentTeam: "珍獣戦線",
+        main: ["mev7901", "Lonts94", "sieg121"],
+        sub: ["yuryevna"],
+        deckList: [
+          { handle: "mev7901", deckName: "Mathmech",        deckSlug: "mathmech" },
+          { handle: "Lonts94", deckName: "Branded Bystial", deckSlug: "branded-bystial" },
+          { handle: "sieg121", deckName: "Dragon Link",     deckSlug: "dragon-link" },
+        ],
+        matchResult: "win",
+        rounds: [
+          // Babak 1 — 珍獣戦線 Win
+          { dsPlayerHandle: "mev7901", opponent: "のりさん",  opponentDeck: "Vanquish Soul",   dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "Lonts94", opponent: "クマガ",    opponentDeck: "SHS",             dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "sieg121", opponent: "Rexcrooz",  opponentDeck: "Branded Bystial", dsWins: 1, dsLosses: 2 },
+          // Babak 2 — Celebeast Win
+          { dsPlayerHandle: "Lonts94", opponent: "のりさん",  opponentDeck: "Vanquish Soul",   dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "mev7901", opponent: "クマガ",    opponentDeck: "SHS",             dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "sieg121", opponent: "Rexcrooz",  opponentDeck: "Branded Bystial", dsWins: 1, dsLosses: 2 },
+          // Babak 3 — Celebeast Win
+          { dsPlayerHandle: "Lonts94", opponent: "Rexcrooz",  opponentDeck: "Branded Bystial", dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "mev7901", opponent: "のりさん",  opponentDeck: "Vanquish Soul",   dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "sieg121", opponent: "反転",      opponentDeck: "Kashtira",        dsWins: 2, dsLosses: 1 },
+        ],
+      },
+
+      /* ── Week 2 · vs YD(A) · Win 2-1 ─────────────────────────────── */
+      {
+        week: "Week 2",
+        opponentTeam: "YD(A)",
+        main: ["Lonts94", "mev7901", "yuryevna"],
+        sub: ["cain00"],
+        deckList: [
+          { handle: "Lonts94",  deckName: "Labrynth",  deckSlug: "labrynth" },
+          { handle: "mev7901",  deckName: "Mathmech",  deckSlug: "mathmech" },
+          { handle: "yuryevna", deckName: "Mannadium", deckSlug: "mannadium" },
+          { handle: "cain00",   deckName: "Swordsoul", deckSlug: "swordsoul" },
+        ],
+        matchResult: "win",
+        rounds: [
+          // Babak 1 — YD(A) Win (Yuryevna's B1 deck unrecorded on the scorecard)
+          { dsPlayerHandle: "Lonts94",  opponent: "Monder",   opponentDeck: "Labrynth", dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "mev7901",  opponent: "Stardust", opponentDeck: "Labrynth", dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "yuryevna", opponent: "virus",                              dsWins: 0, dsLosses: 2 },
+          // Babak 2 — Celebeast Win (Cain subs in for Mev)
+          { dsPlayerHandle: "cain00",   opponent: "Monder",   opponentDeck: "Labrynth",        dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "yuryevna", opponent: "Stardust", opponentDeck: "Labrynth",        dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "Lonts94",  opponent: "virus",    opponentDeck: "Branded Bystial", dsWins: 2, dsLosses: 0 },
+          // Babak 3 — Celebeast Win
+          { dsPlayerHandle: "cain00",   opponent: "Monder",   opponentDeck: "Labrynth",        dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "yuryevna", opponent: "virus",    opponentDeck: "Branded Bystial", dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "Lonts94",  opponent: "Stardust", opponentDeck: "Labrynth",        dsWins: 2, dsLosses: 1 },
+        ],
+      },
+
+      /* ── Week 3 · vs Exclusion · Win 2-0 ─────────────────────────── */
+      {
+        week: "Week 3",
+        opponentTeam: "Exclusion",
+        main: ["sieg121", "yuryevna", "cain00"],
+        sub: ["mev7901"],
+        deckList: [
+          { handle: "sieg121",  deckName: "Phantom Knight", deckSlug: "phantom-knight" },
+          { handle: "yuryevna", deckName: "Mannadium",      deckSlug: "mannadium" },
+          { handle: "cain00",   deckName: "Swordsoul",      deckSlug: "swordsoul" },
+        ],
+        matchResult: "win",
+        rounds: [
+          // Babak 1 — Celebeast Win
+          { dsPlayerHandle: "sieg121",  opponent: "チェダッカ〜!",   opponentDeck: "Tearlaments", dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "yuryevna", opponent: "じょがい",       opponentDeck: "Mannadium",   dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "cain00",   opponent: "純白のちくわ",   opponentDeck: "Dark World",  dsWins: 2, dsLosses: 0 },
+          // Babak 2 — Celebeast Win (match clinched 2-0, B3 not played)
+          { dsPlayerHandle: "sieg121",  opponent: "じょがい",       opponentDeck: "Mannadium",   dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "yuryevna", opponent: "純白のちくわ",   opponentDeck: "Dark World",  dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "cain00",   opponent: "チェダッカ〜!",   opponentDeck: "Tearlaments", dsWins: 2, dsLosses: 1 },
+        ],
+      },
+
+      /* ── Week 4 · vs YD(B) · Win 2-1 ─────────────────────────────── */
+      {
+        week: "Week 4",
+        opponentTeam: "YD(B)",
+        main: ["awarix", "mev7901", "cain00"],
+        sub: ["yuryevna"],
+        deckList: [
+          { handle: "awarix",   deckName: "Labrynth",    deckSlug: "labrynth" },
+          { handle: "mev7901",  deckName: "Gishiki",     deckSlug: "gishiki" },
+          { handle: "cain00",   deckName: "Swordsoul",   deckSlug: "swordsoul" },
+          { handle: "yuryevna", deckName: "Tearlaments", deckSlug: "tearlaments" },
+        ],
+        matchResult: "win",
+        rounds: [
+          // Babak 1 — Celebeast Win
+          { dsPlayerHandle: "awarix",   opponent: "DARK",    opponentDeck: "Labrynth",         dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "mev7901",  opponent: "Aban",    opponentDeck: "Vanquish Soul",    dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "cain00",   opponent: "Diavolo", opponentDeck: "Snake Eyes R-ACE", dsWins: 2, dsLosses: 0 },
+          // Babak 2 — YD(B) Win
+          { dsPlayerHandle: "awarix",   opponent: "MSB",     opponentDeck: "Vanquish Soul",    dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "mev7901",  opponent: "DARK",    opponentDeck: "Labrynth",         dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "cain00",   opponent: "Aban",    opponentDeck: "Vanquish Soul",    dsWins: 1, dsLosses: 2 },
+          // Babak 3 — Celebeast Win (Yuryevna subs in for Awarix)
+          { dsPlayerHandle: "cain00",   opponent: "MSB",     opponentDeck: "Vanquish Soul",    dsWins: 1, dsLosses: 2 },
+          { dsPlayerHandle: "yuryevna", opponent: "DARK",    opponentDeck: "Labrynth",         dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "mev7901",  opponent: "Aban",    opponentDeck: "Vanquish Soul",    dsWins: 2, dsLosses: 0 },
+        ],
+      },
+
+      /* ── Week 5 · vs Stellar Trace · Loss 1-2 ────────────────────── */
+      {
+        week: "Week 5",
+        opponentTeam: "Stellar Trace",
+        main: ["mev7901", "cain00", "yuryevna"],
+        sub: ["Lonts94"],
+        deckList: [
+          { handle: "mev7901",  deckName: "Snake Eyes",    deckSlug: "snake-eyes" },
+          { handle: "cain00",   deckName: "Tri Zoodiac",   deckSlug: "tri-zoodiac" },
+          { handle: "yuryevna", deckName: "Snake Eyes",    deckSlug: "snake-eyes" },
+          { handle: "Lonts94",  deckName: "Vanquish Soul", deckSlug: "vanquish-soul" },
+        ],
+        matchResult: "loss",
+        rounds: [
+          // Babak 1 — Stellar Trace Win
+          { dsPlayerHandle: "mev7901",  opponent: "暗星破碎",  opponentDeck: "Snake Eyes",      dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "cain00",   opponent: "Tang",      opponentDeck: "Labrynth",        dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "yuryevna", opponent: "Nightmare", opponentDeck: "Branded Bystial", dsWins: 0, dsLosses: 2 },
+          // Babak 2 — Celebeast Win (Lonts subs in for Yuryevna)
+          { dsPlayerHandle: "cain00",   opponent: "暗星破碎",  opponentDeck: "Snake Eyes",      dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "Lonts94",  opponent: "Tang",      opponentDeck: "Labrynth",        dsWins: 2, dsLosses: 0 },
+          { dsPlayerHandle: "mev7901",  opponent: "Nightmare", opponentDeck: "Branded Bystial", dsWins: 0, dsLosses: 2 },
+          // Babak 3 — Stellar Trace Win
+          { dsPlayerHandle: "cain00",   opponent: "Tang",      opponentDeck: "Labrynth",        dsWins: 0, dsLosses: 2 },
+          { dsPlayerHandle: "Lonts94",  opponent: "Nightmare", opponentDeck: "Branded Bystial", dsWins: 2, dsLosses: 1 },
+          { dsPlayerHandle: "mev7901",  opponent: "小米粥",    opponentDeck: "Fusion GS",       dsWins: 1, dsLosses: 2 },
+        ],
+      },
+    ],
+  },
 ];
 
 /* ------- accessors ------- */
@@ -581,6 +893,13 @@ const opponentAlias: Record<string, string> = {
   "yummy solfa":       "yummy",
   "branded albaz":     "branded-despia",
   "magnet":            "magnet-warrior",
+  // WMGR 2024 opponents
+  "vanquish soul":     "vanquish-soul",
+  "labrynth":          "labrynth",
+  "branded bystial":   "branded-bystial",
+  "mannadium":         "mannadium",
+  "tearlaments":       "tearlaments",
+  "snake eyes":        "snake-eyes",
 };
 
 /** Builds the deck list + head-to-head W/L tally for a tournament, from real round data. */
@@ -588,13 +907,13 @@ function buildTournamentTally(slug: string) {
   const t = getTournament(slug);
   if (!t?.weeks) return null;
 
-  // collect all deck slugs that actually appeared in this tournament's lineups
-  const slugSet = new Set<string>();
+  // collect deck slugs fielded in this tournament + how many lineup slots each filled
+  const localUsage: Record<string, number> = {};
   for (const w of t.weeks)
     for (const d of w.deckList)
-      if (d.deckSlug) slugSet.add(d.deckSlug);
+      if (d.deckSlug) localUsage[d.deckSlug] = (localUsage[d.deckSlug] ?? 0) + 1;
 
-  const list = getAllDecks().filter((d) => slugSet.has(d.slug));
+  const list = getAllDecks().filter((d) => d.slug in localUsage);
   if (list.length < 2) return null;
 
   const tally: Record<string, Record<string, { w: number; l: number }>> = {};
@@ -622,7 +941,7 @@ function buildTournamentTally(slug: string) {
     }
   }
 
-  return { list, tally };
+  return { list, tally, localUsage };
 }
 
 /** Real head-to-head win rates computed from recorded rounds in a specific tournament. */
@@ -644,9 +963,10 @@ export function getTournamentMatchupMatrix(slug: string) {
 export function getTournamentMetaAnalyst(slug: string) {
   const built = buildTournamentTally(slug);
   if (!built) return null;
-  const { list, tally } = built;
+  const { list, tally, localUsage } = built;
 
-  const topDeck = [...list].sort((a, b) => b.usageCount - a.usageCount)[0];
+  // most-fielded within THIS tournament, not by career usage
+  const topDeck = [...list].sort((a, b) => (localUsage[b.slug] ?? 0) - (localUsage[a.slug] ?? 0))[0];
   if (!topDeck) return null;
 
   const matchups = list
@@ -661,7 +981,7 @@ export function getTournamentMetaAnalyst(slug: string) {
   const worst = matchups.length ? matchups.reduce((a, b) => (b.wr < a.wr ? b : a)) : null;
   const sameMatchup = best && worst && best.deck.slug === worst.deck.slug;
 
-  return { topDeck, best, worst: sameMatchup ? null : worst };
+  return { topDeck, topDeckUsage: localUsage[topDeck.slug] ?? 0, best, worst: sameMatchup ? null : worst };
 }
 
 /** Every phase a deck was fielded in, across all team tournaments — with pilot and W/L. */

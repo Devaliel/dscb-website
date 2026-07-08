@@ -182,7 +182,7 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
                       >
                         Meta Analyst
                       </span>
-                      {meta.topDeck.name} was DS Celebeast&apos;s most-fielded archetype this tournament ({meta.topDeck.usageCount} phases).
+                      {meta.topDeck.name} was DS Celebeast&apos;s most-fielded archetype this tournament ({meta.topDeckUsage} phases).
                       {meta.best && ` Its strongest matchup was vs ${meta.best.deck.name} at ${meta.best.wr}% (${meta.best.games} games).`}
                       {meta.worst && ` Its toughest was vs ${meta.worst.deck.name} at ${meta.worst.wr}% (${meta.worst.games} games).`}
                     </div>
