@@ -157,7 +157,7 @@ function HeroArt({ src, glow }: { src: string; glow: string }) {
 
   // soft fade on the sides only — feet stay visible
   const mask =
-    "radial-gradient(ellipse 78% 110% at 50% 42%, black 55%, transparent 96%)";
+    "radial-gradient(ellipse 74% 105% at 50% 42%, black 42%, transparent 90%)";
   // solid-color silhouette via alpha mask of the PNG itself
   const silhouette = (color: string): React.CSSProperties => ({
     position: "absolute",
@@ -189,12 +189,12 @@ function HeroArt({ src, glow }: { src: string; glow: string }) {
       >
         {/* Persona-style colored echoes behind the cutout */}
         <motion.div
-          style={{ ...silhouette("var(--color-cyber-500)"), opacity: 0.28 }}
+          style={{ ...silhouette("var(--color-cyber-500)"), opacity: 0.16 }}
           animate={{ x: [-10, -16, -10], y: [8, 12, 8] }}
           transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
         />
         <motion.div
-          style={{ ...silhouette("var(--color-brand-500)"), opacity: 0.32 }}
+          style={{ ...silhouette("var(--color-brand-500)"), opacity: 0.18 }}
           animate={{ x: [10, 16, 10], y: [-6, -10, -6] }}
           transition={{ duration: 4.8, repeat: Infinity, ease: "easeInOut" }}
         />
@@ -208,8 +208,8 @@ function HeroArt({ src, glow }: { src: string; glow: string }) {
           onError={() => setOk(false)}
           className="relative h-full w-full object-contain object-bottom"
           style={{
-            opacity: 0.85,
-            filter: `saturate(1.05) drop-shadow(0 0 60px color-mix(in oklab, ${glow} 50%, transparent))`,
+            opacity: 0.45,
+            filter: `saturate(1.05) drop-shadow(0 0 60px color-mix(in oklab, ${glow} 40%, transparent))`,
           }}
         />
       </motion.div>
