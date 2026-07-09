@@ -41,16 +41,22 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-1.5 border-t border-white/5 py-5 text-center text-xs text-fog-600 sm:flex-row sm:justify-between sm:px-6">
           <p>© {new Date().getFullYear()} DSCB. Card data & art via YGOPRODeck. Fan project, not affiliated with Konami.</p>
           <VisitorCounter />
-          <p>
-            Built by{" "}
-            <a
-              href="https://darkzill.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-fog-500 underline decoration-white/20 underline-offset-2 hover:text-fog-100"
-            >
-              Darkzill
+          <p className="flex items-center gap-3">
+            <a href="/admin" className="text-fog-600 transition-colors hover:text-fog-300">
+              Team Login
             </a>
+            <span aria-hidden className="text-fog-700">·</span>
+            <span>
+              Built by{" "}
+              <a
+                href="https://darkzill.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-fog-500 underline decoration-white/20 underline-offset-2 hover:text-fog-100"
+              >
+                Darkzill
+              </a>
+            </span>
           </p>
         </div>
       </div>

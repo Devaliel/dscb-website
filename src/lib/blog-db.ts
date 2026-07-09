@@ -5,6 +5,8 @@ import { getPosts as getStaticPosts, getPost as getStaticPost, type BlogPost } f
 export const EMAIL_TO_HANDLE: Record<string, string> = {
   "darkzill0410@gmail.com": "Darkzill",
   "andresondakh121@gmail.com": "sieg121",
+  "p13rr3.maxwell@gmail.com": "yuryevna",
+  "cadullahrivaldy@gmail.com": "cain00",
 };
 
 interface PostRow {
