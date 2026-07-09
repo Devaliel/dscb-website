@@ -166,8 +166,8 @@ export default function Home() {
 }
 
 /* ── Contact constants — owner replaces these two values ── */
-const DISCORD_HANDLE = "darkzill";        // ← your Discord username
-const WHATSAPP_NUMBER = "60123456789";    // ← your number, digits only (no + or spaces)
+const DISCORD_HANDLE = "Sieg";        // ← your Discord username
+const WHATSAPP_NUMBER = "6282175328274";    // ← your number, digits only (no + or spaces)
 
 function JoinSection() {
   return (
