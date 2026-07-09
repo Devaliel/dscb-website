@@ -18,7 +18,7 @@ export interface Deck {
 export interface Player {
   handle: string;
   name: string;
-  role: "Captain" | "Vice Captain" | "Member";
+  role: "Captain" | "Vice Captain" | "Member" | "Try Out";
   tagline: string;
   bio: string;
   gameId?: string;      // Master Duel friend ID e.g. "331-001-777"

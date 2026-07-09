@@ -542,6 +542,30 @@ export const players: Player[] = [
     mainDeckSlug: "ryzeal",
     socials: [],
   },
+  {
+    handle: "Antares",
+    name: "Antares",
+    role: "Try Out",
+    tagline: "Rising duelist on trial",
+    bio: "Antares is on trial with DS Celebeast — a newcomer proving their worth against the roster's veterans. Watch this space.",
+    titles: 0,
+    wins: 0,
+    losses: 0,
+    mainDeckSlug: "blue-eyes",
+    socials: [],
+  },
+  {
+    handle: "OPENBO500",
+    name: "OPENBO500",
+    role: "Try Out",
+    tagline: "Rising duelist on trial",
+    bio: "OPENBO500 is on trial with DS Celebeast — a newcomer proving their worth against the roster's veterans. Watch this space.",
+    titles: 0,
+    wins: 0,
+    losses: 0,
+    mainDeckSlug: "blue-eyes",
+    socials: [],
+  },
 ];
 
 export const tournaments: Tournament[] = [
