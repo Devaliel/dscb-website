@@ -1,6 +1,7 @@
 "use client";
 
 import { TransitionLink } from "./persona/transition-provider";
+import VisitorCounter from "./visitor-counter";
 
 const LINKS = [
   { href: "/decks", label: "Decks" },
@@ -38,6 +39,7 @@ export default function Footer() {
         </div>
         <div className="flex flex-col items-center gap-1.5 border-t border-white/5 py-5 text-center text-xs text-fog-600 sm:flex-row sm:justify-between sm:px-6">
           <p>© {new Date().getFullYear()} DSCB. Card data & art via YGOPRODeck. Fan project, not affiliated with Konami.</p>
+          <VisitorCounter />
           <p>
             Built by{" "}
             <a
