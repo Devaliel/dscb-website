@@ -175,7 +175,7 @@ export const decks: Deck[] = [
     losses: 4,
     usageCount: 3,
     description:
-      "Yuryevna's WMGR 2024 pick for Weeks 2 and 3 — 8W–3L, dropping only three games across two team wins, then a one-off in the TDC S1 2024 relay. The Visas Starfrost engine at its peak. 8W–4L.",
+      "Yuryevna's WMGR 2024 pick for Weeks 2 and 3 — 8W–3L, dropping only three games across two team wins, then a one-off in the TDC S1 2025 relay. The Visas Starfrost engine at its peak. 8W–4L.",
     pilotHandles: ["yuryevna"],
     sampleList: [],
   },
@@ -203,7 +203,7 @@ export const decks: Deck[] = [
     losses: 5,
     usageCount: 3,
     description:
-      "Mev's Cyberse combo pick — a flawless 3-0 match sweep of 珍獣戦線 to open WMGR 2024, with a brief TDC S1 2024 cameo against BTD Omegas. One-card starters into explosive boards. 6W–5L overall.",
+      "Mev's Cyberse combo pick — a flawless 3-0 match sweep of 珍獣戦線 to open WMGR 2024, with a brief TDC S1 2025 cameo against BTD Omegas. One-card starters into explosive boards. 6W–5L overall.",
     pilotHandles: ["mev7901"],
     sampleList: [],
   },
@@ -273,7 +273,7 @@ export const decks: Deck[] = [
     losses: 18,
     usageCount: 8,
     description:
-      "The team's most-travelled Fire archetype — Mev and Yuryevna ran it across WMGR 2024 (W5 + Top 8), Lonts and Cain added it in WMGPxA 2024 W2, Mev brought it back in WMGPxA W3, and Lonts fielded it again in TDC S1 2024. 14W–18L career.",
+      "The team's most-travelled Fire archetype — Mev and Yuryevna ran it across WMGR 2024 (W5 + Top 8), Lonts and Cain added it in WMGPxA 2024 W2, Mev brought it back in WMGPxA W3, and Lonts fielded it again in TDC S1 2025. 14W–18L career.",
     pilotHandles: ["mev7901", "yuryevna", "Lonts94", "cain00"],
     sampleList: [],
   },
@@ -287,7 +287,7 @@ export const decks: Deck[] = [
     losses: 1,
     usageCount: 2,
     description:
-      "Yuryevna's perfect cameo in WMGR 2024 — swept Labrynth 2-0 in a Week 4 relief spot. Lonts then took it on a 4-1 tear through the TDC S1 2024 Upper Bracket against Teameeps. 6W–1L.",
+      "Yuryevna's perfect cameo in WMGR 2024 — swept Labrynth 2-0 in a Week 4 relief spot. Lonts then took it on a 4-1 tear through the TDC S1 2025 Upper Bracket against Teameeps. 6W–1L.",
     pilotHandles: ["yuryevna", "Lonts94"],
     sampleList: [],
   },
@@ -358,7 +358,7 @@ export const decks: Deck[] = [
     losses: 6,
     usageCount: 3,
     description:
-      "Lonts's WMGPxA 2024 Week 1 pick and Cain's Week 4 selection — the Purrely Xyz engine. Lonts carried the B3 decider against Nugget knights, then opened the TDC S1 2024 relay with it. 5W–6L total.",
+      "Lonts's WMGPxA 2024 Week 1 pick and Cain's Week 4 selection — the Purrely Xyz engine. Lonts carried the B3 decider against Nugget knights, then opened the TDC S1 2025 relay with it. 5W–6L total.",
     pilotHandles: ["Lonts94", "cain00"],
     sampleList: [],
   },
@@ -386,11 +386,11 @@ export const decks: Deck[] = [
     losses: 10,
     usageCount: 8,
     description:
-      "Mev's TDC S1 2024 anchor — the Snake-Eyes Fire King hybrid he rode to two 5-0 solo sweeps (Roseweisse Mansion in Week 2, DS Trishula in the Upper Bracket). First seen double-fielded with Lonts in WMGPxA 2024. 19W–10L across three tournaments.",
+      "Mev's TDC S1 2025 anchor — the Snake-Eyes Fire King hybrid he rode to two 5-0 solo sweeps (Roseweisse Mansion in Week 2, DS Trishula in the Upper Bracket). First seen double-fielded with Lonts in WMGPxA 2024. 19W–10L across three tournaments.",
     pilotHandles: ["mev7901", "Lonts94"],
     sampleList: [],
   },
-  // ── TDC S1 2024 archetypes ──
+  // ── TDC S1 2025 archetypes ──
   {
     slug: "tri-brigade",
     name: "Tri-Brigade",
@@ -401,7 +401,7 @@ export const decks: Deck[] = [
     losses: 3,
     usageCount: 5,
     description:
-      "Cain's TDC S1 2024 workhorse — the Tri-Brigade Spright link engine. Anchored five relay matches including a 5-0 solo sweep of BTD Omegas. Beast-warrior swarm that links into disruption from an empty board. 10W–3L.",
+      "Cain's TDC S1 2025 workhorse — the Tri-Brigade Spright link engine. Anchored five relay matches including a 5-0 solo sweep of BTD Omegas. Beast-warrior swarm that links into disruption from an empty board. 10W–3L.",
     pilotHandles: ["cain00"],
     sampleList: [],
   },
@@ -415,7 +415,7 @@ export const decks: Deck[] = [
     losses: 3,
     usageCount: 4,
     description:
-      "The team's TDC S1 2024 fiend pillar — Sieg's Unchained-flavoured Yubel build across the group stage, with Mev picking it up against Evolushine. Nightmare-throne control that punishes every interaction. 7W–3L.",
+      "The team's TDC S1 2025 fiend pillar — Sieg's Unchained-flavoured Yubel build across the group stage, with Mev picking it up against Evolushine. Nightmare-throne control that punishes every interaction. 7W–3L.",
     pilotHandles: ["sieg121", "mev7901"],
     sampleList: [],
   },
@@ -429,7 +429,7 @@ export const decks: Deck[] = [
     losses: 1,
     usageCount: 2,
     description:
-      "Lonts's TDC S1 2024 grind engine — the Ritual Beast Nemeses toolbox. Went 4-0 tearing through Hydra in Week 3 before a lone Mannadium loss. Contact-fusion value that never runs dry. 4W–1L.",
+      "Lonts's TDC S1 2025 grind engine — the Ritual Beast Nemeses toolbox. Went 4-0 tearing through Hydra in Week 3 before a lone Mannadium loss. Contact-fusion value that never runs dry. 4W–1L.",
     pilotHandles: ["Lonts94"],
     sampleList: [],
   },
@@ -443,7 +443,7 @@ export const decks: Deck[] = [
     losses: 3,
     usageCount: 3,
     description:
-      "The team's TDC S1 2024 aggro gamble — Cain and Lonts both took the Tenpai Dragon OTK into the relay. Explosive but fragile: 1W–3L, all against the mirror and grindier decks.",
+      "The team's TDC S1 2025 aggro gamble — Cain and Lonts both took the Tenpai Dragon OTK into the relay. Explosive but fragile: 1W–3L, all against the mirror and grindier decks.",
     pilotHandles: ["cain00", "Lonts94"],
     sampleList: [],
   },
@@ -457,7 +457,7 @@ export const decks: Deck[] = [
     losses: 1,
     usageCount: 2,
     description:
-      "Shared between Lonts (Week 5) and Yuryevna (Upper Bracket clincher vs Teameeps) in TDC S1 2024 — the White Wood Centur-ion trap-monster engine. Resilient stun-control. 2W–1L.",
+      "Shared between Lonts (Week 5) and Yuryevna (Upper Bracket clincher vs Teameeps) in TDC S1 2025 — the White Wood Centur-ion trap-monster engine. Resilient stun-control. 2W–1L.",
     pilotHandles: ["Lonts94", "yuryevna"],
     sampleList: [],
   },
@@ -471,7 +471,7 @@ export const decks: Deck[] = [
     losses: 2,
     usageCount: 2,
     description:
-      "Darkzill's TDC S1 2024 ritual project — the Voiceless Voice hand-trap-heavy control shell. Ground out a win against R.O.T.A's True-Draco. 1W–2L in its debut league.",
+      "Darkzill's TDC S1 2025 ritual project — the Voiceless Voice hand-trap-heavy control shell. Ground out a win against R.O.T.A's True-Draco. 1W–2L in its debut league.",
     pilotHandles: ["Darkzill"],
     sampleList: [],
   },
@@ -485,7 +485,7 @@ export const decks: Deck[] = [
     losses: 1,
     usageCount: 1,
     description:
-      "Awarix's TDC S1 2024 wildcard — the Goblin Biker rush-aggro deck. Took down a Yubel before bowing out to Mathmech in Week 5. 1W–1L.",
+      "Awarix's TDC S1 2025 wildcard — the Goblin Biker rush-aggro deck. Took down a Yubel before bowing out to Mathmech in Week 5. 1W–1L.",
     pilotHandles: ["awarix"],
     sampleList: [],
   },
@@ -499,7 +499,7 @@ export const decks: Deck[] = [
     losses: 1,
     usageCount: 1,
     description:
-      "Yuryevna's TDC S1 2024 mill-control experiment — the Runick White Forest Fountain package. A single tough game against Evolushine's Fire King. 0W–1L, more to prove.",
+      "Yuryevna's TDC S1 2025 mill-control experiment — the Runick White Forest Fountain package. A single tough game against Evolushine's Fire King. 0W–1L, more to prove.",
     pilotHandles: ["yuryevna"],
     sampleList: [],
   },
@@ -583,7 +583,7 @@ export const players: Player[] = [
     name: "DS Sieg",
     role: "Captain",
     tagline: "Magnet combo architect",
-    bio: "Team captain and founding member. Dragon Link and Phantom Knight in WMGR 2024, Unchained in WMGPxA 2024, a steady Yubel run through TDC S1 2024, then Magnet Warrior, Radiant Typhoon and Enneacraft across Jawir 2026. 30W–21L career.",
+    bio: "Team captain and founding member. Dragon Link and Phantom Knight in WMGR 2024, Unchained in WMGPxA 2024, a steady Yubel run through TDC S1 2025, then Magnet Warrior, Radiant Typhoon and Enneacraft across Jawir 2026. 30W–21L career.",
     gameId: "331-001-777",
     titles: 0,
     wins: 30,
@@ -596,7 +596,7 @@ export const players: Player[] = [
     name: "DS Yuryevna",
     role: "Member",
     tagline: "Branded control specialist",
-    bio: "The team's most versatile deck-builder — Mannadium and Tearlaments in WMGR 2024, Branded Chimera in WMGPxA 2024, a five-archetype tour of TDC S1 2024, and a dominant Branded Despia run in Jawir 2026. 29W–21L career.",
+    bio: "The team's most versatile deck-builder — Mannadium and Tearlaments in WMGR 2024, Branded Chimera in WMGPxA 2024, a five-archetype tour of TDC S1 2025, and a dominant Branded Despia run in Jawir 2026. 29W–21L career.",
     gameId: "498-595-485",
     titles: 0,
     wins: 29,
@@ -609,7 +609,7 @@ export const players: Player[] = [
     name: "DS Cain",
     role: "Vice Captain",
     tagline: "Team ace — never misses",
-    bio: "The squad's iron man — Swordsoul and Tri Zoodiac through WMGR 2024, Snake Eyes and Purrely in WMGPxA 2024, a Tri-Brigade run headlined by a 5-0 relay sweep in TDC S1 2024, then every phase of Jawir 2026 on Kewl Tune. 61W–45L career.",
+    bio: "The squad's iron man — Swordsoul and Tri Zoodiac through WMGR 2024, Snake Eyes and Purrely in WMGPxA 2024, a Tri-Brigade run headlined by a 5-0 relay sweep in TDC S1 2025, then every phase of Jawir 2026 on Kewl Tune. 61W–45L career.",
     gameId: "798-514-613",
     titles: 0,
     wins: 61,
@@ -622,7 +622,7 @@ export const players: Player[] = [
     name: "DS Mev",
     role: "Member",
     tagline: "Blue-Eyes tactician",
-    bio: "The team's relay closer — Mathmech/Gishiki/Snake Eyes in WMGR 2024, Snake Race/R-ACE/Fire King in WMGPxA 2024, then a monster TDC S1 2024 on Fire King with two 5-0 solo sweeps, plus an Exosister cameo in Jawir 2026. 43W–35L career.",
+    bio: "The team's relay closer — Mathmech/Gishiki/Snake Eyes in WMGR 2024, Snake Race/R-ACE/Fire King in WMGPxA 2024, then a monster TDC S1 2025 on Fire King with two 5-0 solo sweeps, plus an Exosister cameo in Jawir 2026. 43W–35L career.",
     gameId: "411-280-170",
     titles: 0,
     wins: 43,
@@ -635,7 +635,7 @@ export const players: Player[] = [
     name: "Lonts",
     role: "Member",
     tagline: "Orcust grind machine",
-    bio: "An Orcust main who adapts to whatever the team needs — Labrynth and Branded Bystial in WMGR 2024, Snake Eyes/Purrely/Fire King in WMGPxA 2024, a seven-deck grind through TDC S1 2024 capped by a 4-1 Tearlaments playoff run, then Radiant Typhoon and Branded Despia in Jawir 2026. 48W–41L career.",
+    bio: "An Orcust main who adapts to whatever the team needs — Labrynth and Branded Bystial in WMGR 2024, Snake Eyes/Purrely/Fire King in WMGPxA 2024, a seven-deck grind through TDC S1 2025 capped by a 4-1 Tearlaments playoff run, then Radiant Typhoon and Branded Despia in Jawir 2026. 48W–41L career.",
     gameId: "603-946-920",
     titles: 0,
     wins: 48,
@@ -648,7 +648,7 @@ export const players: Player[] = [
     name: "DS Awarix",
     role: "Member",
     tagline: "P.U.N.K. chaos engine",
-    bio: "DS Awarix's P.U.N.K. deck defies convention — a one-turn combo specialist who builds intimidating boards. Made his debut on Labrynth in Week 4 of WMGR 2024 and rode Goblin Biker into the TDC S1 2024 relay. 2W–5L.",
+    bio: "DS Awarix's P.U.N.K. deck defies convention — a one-turn combo specialist who builds intimidating boards. Made his debut on Labrynth in Week 4 of WMGR 2024 and rode Goblin Biker into the TDC S1 2025 relay. 2W–5L.",
     gameId: "434-385-335",
     titles: 0,
     wins: 2,
@@ -661,7 +661,7 @@ export const players: Player[] = [
     name: "Darkzill",
     role: "Member",
     tagline: "Ryzeal pioneer",
-    bio: "Darkzill adapts every week — Yummy in W1/W3/W5 and Vanquish Soul K9 in W2/W4 of Jawir 2026, then a Voiceless Voice ritual project in TDC S1 2024. His 6–2 Yummy rampage carried the Week 3 win against UXma Musume. 13W–15L in recorded games.",
+    bio: "Darkzill adapts every week — Yummy in W1/W3/W5 and Vanquish Soul K9 in W2/W4 of Jawir 2026, then a Voiceless Voice ritual project in TDC S1 2025. His 6–2 Yummy rampage carried the Week 3 win against UXma Musume. 13W–15L in recorded games.",
     gameId: "694-725-759",
     titles: 0,
     wins: 13,
@@ -1224,11 +1224,11 @@ export const tournaments: Tournament[] = [
     ],
   },
 
-  /* ═══════════════ TDC S1 2024 — survival relay ═══════════════ */
+  /* ═══════════════ TDC S1 2025 — survival relay ═══════════════ */
   {
-    slug: "tdc-s1-2024",
-    name: "TDC S1 2024",
-    date: "2024-08-01",
+    slug: "tdc-s1-2025",
+    name: "TDC S1 2025",
+    date: "2025-08-01",
     format: "Team · Survival relay · first to 5 game wins",
     location: "Online (Duel Standby — True Duel List)",
     participants: 8,
@@ -1551,7 +1551,7 @@ const opponentAlias: Record<string, string> = {
   "purrely":           "purrely",
   "r-ace":             "r-ace",
   "branded":           "branded-chimera",
-  // TDC S1 2024 opponents (only decks we also field get a page)
+  // TDC S1 2025 opponents (only decks we also field get a page)
   "mathmech":          "mathmech",
   "tenpai dragon":     "tenpai-dragon",
   "centur-ion":        "centur-ion",
