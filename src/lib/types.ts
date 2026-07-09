@@ -65,6 +65,7 @@ export interface Tournament {
   location: string;
   participants: number;
   type?: "individual" | "team";
+  relay?: boolean;        // survival-relay (kachinuki) format — winner stays on, first to 5 game wins
   ourResult?: string;     // e.g. "Finalists", "Semi-finalists"
   weeks?: WeekLineup[];   // team-tournament weekly data
   results: TournamentResult[]; // individual-tournament results

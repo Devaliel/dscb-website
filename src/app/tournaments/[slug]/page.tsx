@@ -6,6 +6,7 @@ import TierBadge from "@/components/tier-badge";
 import DeckChip from "@/components/deck-chip";
 import { getTournament, getTournaments, getPlayer, getDeck, getTournamentMatchupMatrix, getTournamentMetaAnalyst } from "@/lib/data";
 import MatchupGrid from "@/components/matchup-grid";
+import RelayMatch from "@/components/relay-match";
 import { winRate } from "@/lib/utils";
 import type { WeekLineup } from "@/lib/types";
 
@@ -158,11 +159,17 @@ export default async function TournamentPage({ params }: { params: Promise<{ slu
       <div className="mx-auto max-w-6xl px-6 py-12">
         {isTeam && t.weeks ? (
           <>
-            <h2 className="text-persona mb-8 text-2xl text-fog-100">Weekly Lineups</h2>
+            <h2 className="text-persona mb-8 text-2xl text-fog-100">
+              {t.relay ? "Relay Matches" : "Weekly Lineups"}
+            </h2>
             <div className="space-y-5">
-              {t.weeks.map((week, i) => (
-                <WeekBlock key={week.week} week={week} index={i} />
-              ))}
+              {t.weeks.map((week, i) =>
+                t.relay ? (
+                  <RelayMatch key={week.week} week={week} index={i} />
+                ) : (
+                  <WeekBlock key={week.week} week={week} index={i} />
+                )
+              )}
             </div>
             {(() => {
               const matrix = getTournamentMatchupMatrix(t.slug);
