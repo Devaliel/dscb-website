@@ -185,13 +185,6 @@ function MemberCard({ handle, email, onLogout }: { handle: string; email: string
         aria-hidden
       />
 
-      <button
-        onClick={onLogout}
-        className="absolute right-4 top-4 z-10 -skew-x-12 border border-white/20 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-fog-400 hover:bg-white/10 hover:text-fog-100"
-      >
-        <span className="block skew-x-12">Log out</span>
-      </button>
-
       <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center">
         {/* avatar */}
         <div className="h-28 w-28 shrink-0 self-center sm:self-auto">
@@ -229,6 +222,12 @@ function MemberCard({ handle, email, onLogout }: { handle: string; email: string
           <a href="/guestbook" className={linkCls}>
             <span className="block skew-x-12">Guestbook ✦</span>
           </a>
+          <button
+            onClick={onLogout}
+            className="-skew-x-12 border border-white/10 bg-transparent px-4 py-2 text-center text-xs font-bold uppercase tracking-wide text-fog-600 transition-colors hover:border-cyber-500/50 hover:text-cyber-400"
+          >
+            <span className="block skew-x-12">Log out</span>
+          </button>
         </div>
       </div>
     </div>
@@ -405,7 +404,7 @@ export default function AdminPage() {
 
       <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr]">
         {/* editor */}
-        <div className="clip-corner relative border border-white/10 bg-ink-850 p-6" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.5)" }}>
+        <div className="clip-corner relative min-w-0 border border-white/10 bg-ink-850 p-6" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.5)" }}>
           <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
           <h2 className="text-persona relative text-xl text-fog-100">{draft.id ? "Edit post" : "New post"}</h2>
           <form onSubmit={publish} className="relative mt-5 space-y-4">
@@ -468,7 +467,7 @@ export default function AdminPage() {
         </div>
 
         {/* post list */}
-        <div>
+        <div className="min-w-0">
           <h2 className="text-persona mb-4 text-xl text-fog-100">Published posts</h2>
           <div className="space-y-3">
             {posts.length === 0 && <p className="text-sm text-fog-500">No posts in the database yet.</p>}
