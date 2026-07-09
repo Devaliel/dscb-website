@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/players", label: "Players" },
   { href: "/tournaments", label: "Tournaments" },
   { href: "/blog", label: "Blog" },
+  { href: "/guestbook", label: "Guestbook" },
 ];
 
 function NavLogo() {
