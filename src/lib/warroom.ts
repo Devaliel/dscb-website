@@ -23,11 +23,46 @@ export interface LineupEntryRow {
   deck_name: string;
   lineup_role: "main" | "sub";
   tech_note: string | null;
+  main_image: string | null; // storage path in the private "decklists" bucket
+  side_image: string | null; // storage path, optional (side deck)
   updated_at: string;
 }
 
 const MATCH_COLS = "id,opponent_team,public_label,tournament_name,scheduled_at,format,status,notes,expected_opponent_decks,created_at";
-const ENTRY_COLS = "id,match_id,player_handle,deck_slug,deck_name,lineup_role,tech_note,updated_at";
+const ENTRY_COLS = "id,match_id,player_handle,deck_slug,deck_name,lineup_role,tech_note,main_image,side_image,updated_at";
+
+const DECKLISTS = "decklists";
+
+/** Upload a decklist screenshot to the private bucket; returns the storage path. */
+export async function uploadDecklist(file: File): Promise<{ path?: string; error?: string }> {
+  if (!file.type.startsWith("image/")) return { error: "That's not an image file." };
+  if (file.size > 4 * 1024 * 1024) return { error: "Max 4MB — resize the image first." };
+  try {
+    const sb = getBrowserSupabase();
+    const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-");
+    const path = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}-${safeName}`;
+    const { error } = await sb.storage.from(DECKLISTS).upload(path, file);
+    if (error) return { error: "Upload failed — is the decklists bucket set up?" };
+    return { path };
+  } catch {
+    return { error: "Upload failed." };
+  }
+}
+
+/** Batch signed URLs (1h) for private decklist thumbnails. Missing paths are skipped. */
+export async function signedUrls(paths: string[]): Promise<Record<string, string>> {
+  const clean = [...new Set(paths.filter(Boolean))];
+  if (clean.length === 0) return {};
+  try {
+    const { data, error } = await getBrowserSupabase().storage.from(DECKLISTS).createSignedUrls(clean, 3600);
+    if (error || !data) return {};
+    const out: Record<string, string> = {};
+    for (const d of data) if (d.path && d.signedUrl) out[d.path] = d.signedUrl;
+    return out;
+  } catch {
+    return {};
+  }
+}
 
 /** Public: the soonest open match (for the homepage countdown). Anon read of `matches` only. */
 export async function fetchNextMatch(): Promise<MatchRow | null> {

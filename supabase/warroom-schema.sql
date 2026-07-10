@@ -29,9 +29,15 @@ create table if not exists public.lineup_entries (
   deck_name text not null,
   lineup_role text not null default 'main' check (lineup_role in ('main','sub')),
   tech_note text,
+  main_image text,                   -- storage path in the private "decklists" bucket
+  side_image text,                   -- storage path, optional (3v3 side-deck formats)
   updated_at timestamptz not null default now(),
   unique (match_id, player_handle)
 );
+
+-- safe to re-run if the table was created before decklist images existed:
+alter table public.lineup_entries add column if not exists main_image text;
+alter table public.lineup_entries add column if not exists side_image text;
 
 alter table public.lineup_entries enable row level security;
 -- decks are team-only: no anon select policy exists, so anon reads return nothing

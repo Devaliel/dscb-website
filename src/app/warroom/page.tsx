@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import Star from "@/components/persona/star";
 import DeckChip from "@/components/deck-chip";
 import { getBrowserSupabase, supabaseEnabled } from "@/lib/supabase";
 import { EMAIL_TO_HANDLE } from "@/lib/blog-db";
 import { getPlayer, getPlayers, getAllDecks, analyzeLineup } from "@/lib/data";
-import { fetchMatches, fetchEntries, warroomReady, type MatchRow, type LineupEntryRow } from "@/lib/warroom";
+import { fetchMatches, fetchEntries, warroomReady, uploadDecklist, signedUrls, type MatchRow, type LineupEntryRow } from "@/lib/warroom";
+
+type Lightbox = { main?: string; side?: string } | null;
 
 const inputCls =
   "w-full border border-white/15 bg-ink-900 px-3.5 py-2.5 text-sm text-fog-100 outline-none transition-colors placeholder:text-fog-600 focus:border-brand-400";
@@ -31,33 +33,100 @@ const STATUS_STYLE: Record<MatchRow["status"], { label: string; color: string }>
   done: { label: "Done", color: "var(--color-fog-500)" },
 };
 
+/* ── decklist image upload slot ── */
+function ImageSlot({
+  label,
+  url,
+  uploading,
+  onFile,
+  onView,
+  disabled,
+}: {
+  label: string;
+  url?: string;
+  uploading: boolean;
+  onFile: (f: File) => void;
+  onView?: () => void;
+  disabled?: boolean;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <div>
+      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">{label}</label>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => (url && onView ? onView() : ref.current?.click())}
+          disabled={disabled}
+          className="grid h-24 w-36 shrink-0 place-items-center overflow-hidden border border-white/15 bg-ink-900 text-[11px] text-fog-600 transition-colors hover:border-brand-400/60"
+        >
+          {url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={url} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <span>{uploading ? "Uploading…" : "+ Upload"}</span>
+          )}
+        </button>
+        <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onFile(f); }} />
+        {!disabled && (
+          <button type="button" onClick={() => ref.current?.click()} className="text-[11px] text-fog-500 hover:text-brand-300">
+            {url ? "Replace" : uploading ? "…" : "Choose"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ── my-deck submission form ── */
 function MySubmission({
   match,
   handle,
   entry,
+  urls,
   onSaved,
+  onView,
 }: {
   match: MatchRow;
   handle: string;
   entry?: LineupEntryRow;
+  urls: Record<string, string>;
   onSaved: () => void;
+  onView: (lb: Lightbox) => void;
 }) {
   const decks = useMemo(() => getAllDecks(), []);
   const [slug, setSlug] = useState<string>(entry?.deck_slug ?? (entry && !entry.deck_slug ? CUSTOM : ""));
   const [custom, setCustom] = useState(entry && !entry.deck_slug ? entry.deck_name : "");
   const [role, setRole] = useState<"main" | "sub">(entry?.lineup_role ?? "main");
   const [tech, setTech] = useState(entry?.tech_note ?? "");
+  const [mainPath, setMainPath] = useState<string | null>(entry?.main_image ?? null);
+  const [sidePath, setSidePath] = useState<string | null>(entry?.side_image ?? null);
+  const [mainPreview, setMainPreview] = useState<string | null>(null);
+  const [sidePreview, setSidePreview] = useState<string | null>(null);
+  const [upMain, setUpMain] = useState(false);
+  const [upSide, setUpSide] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const locked = match.status !== "open";
 
+  const mainUrl = mainPreview ?? (mainPath ? urls[mainPath] : undefined);
+  const sideUrl = sidePreview ?? (sidePath ? urls[sidePath] : undefined);
+
+  async function pick(file: File, which: "main" | "side") {
+    (which === "main" ? setUpMain : setUpSide)(true);
+    setMsg(null);
+    const { path, error } = await uploadDecklist(file);
+    (which === "main" ? setUpMain : setUpSide)(false);
+    if (error || !path) { setMsg(error ?? "Upload failed."); return; }
+    const preview = URL.createObjectURL(file);
+    if (which === "main") { setMainPath(path); setMainPreview(preview); }
+    else { setSidePath(path); setSidePreview(preview); }
+  }
+
   async function save() {
     const deckName = slug === CUSTOM ? custom.trim() : decks.find((d) => d.slug === slug)?.name ?? "";
-    if (!deckName) {
-      setMsg("Pick a deck or type a custom archetype.");
-      return;
-    }
+    if (!deckName) { setMsg("Pick a deck or type a custom archetype."); return; }
+    if (!mainPath) { setMsg("Upload your main deck image."); return; }
     setBusy(true);
     setMsg(null);
     const row = {
@@ -67,11 +136,11 @@ function MySubmission({
       deck_name: deckName,
       lineup_role: role,
       tech_note: tech.trim() || null,
+      main_image: mainPath,
+      side_image: sidePath,
       updated_at: new Date().toISOString(),
     };
-    const { error } = await getBrowserSupabase()
-      .from("lineup_entries")
-      .upsert(row, { onConflict: "match_id,player_handle" });
+    const { error } = await getBrowserSupabase().from("lineup_entries").upsert(row, { onConflict: "match_id,player_handle" });
     setBusy(false);
     if (error) setMsg(error.message);
     else onSaved();
@@ -86,14 +155,24 @@ function MySubmission({
 
   if (locked) {
     return (
-      <p className="text-sm text-fog-500">
-        {entry ? (
-          <>You brought <span className="text-fog-100">{entry.deck_name}</span> ({entry.lineup_role}).</>
-        ) : (
-          "You didn't submit for this match."
-        )}{" "}
-        Lineup is {match.status}.
-      </p>
+      <div className="space-y-2 text-sm text-fog-500">
+        <p>
+          {entry ? (<>You brought <span className="text-fog-100">{entry.deck_name}</span> ({entry.lineup_role}).</>) : "You didn't submit for this match."}{" "}
+          Lineup is {match.status}.
+        </p>
+        {(mainUrl || sideUrl) && (
+          <div className="flex gap-2">
+            {mainUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={mainUrl} alt="main deck" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-20 w-32 cursor-pointer border border-white/10 object-cover" />
+            )}
+            {sideUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={sideUrl} alt="side deck" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-20 w-32 cursor-pointer border border-white/10 object-cover" />
+            )}
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -101,7 +180,7 @@ function MySubmission({
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">My deck</label>
+          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">Archetype</label>
           <select className={inputCls} value={slug} onChange={(e) => setSlug(e.target.value)}>
             <option value="">Select a deck…</option>
             {decks.map((d) => (
@@ -110,12 +189,7 @@ function MySubmission({
             <option value={CUSTOM}>Custom / off-meta…</option>
           </select>
           {slug === CUSTOM && (
-            <input
-              className={inputCls + " mt-2"}
-              placeholder="Archetype name"
-              value={custom}
-              onChange={(e) => setCustom(e.target.value)}
-            />
+            <input className={inputCls + " mt-2"} placeholder="Archetype name" value={custom} onChange={(e) => setCustom(e.target.value)} />
           )}
         </div>
         <div>
@@ -126,27 +200,21 @@ function MySubmission({
           </select>
         </div>
       </div>
-      <input
-        className={inputCls}
-        placeholder="Tech / side-deck note (optional)"
-        value={tech}
-        onChange={(e) => setTech(e.target.value)}
-      />
+
+      <div className="flex flex-wrap gap-5">
+        <ImageSlot label="Main deck *" url={mainUrl} uploading={upMain} onFile={(f) => pick(f, "main")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
+        <ImageSlot label="Side deck (optional)" url={sideUrl} uploading={upSide} onFile={(f) => pick(f, "side")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
+      </div>
+
+      <input className={inputCls} placeholder="Tech note (optional)" value={tech} onChange={(e) => setTech(e.target.value)} />
       <div className="flex items-center gap-3">
-        <button
-          onClick={save}
-          disabled={busy}
-          className="-skew-x-12 bg-brand-500 px-6 py-2 transition-transform hover:-translate-y-0.5 disabled:opacity-50"
-          style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.5)" }}
-        >
+        <button onClick={save} disabled={busy || upMain || upSide} className="-skew-x-12 bg-brand-500 px-6 py-2 transition-transform hover:-translate-y-0.5 disabled:opacity-50" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.5)" }}>
           <span className="block skew-x-12 font-display text-xs font-extrabold uppercase italic tracking-wide text-white">
             {busy ? "Saving…" : entry ? "Update pick" : "Submit deck"}
           </span>
         </button>
         {entry && (
-          <button onClick={withdraw} disabled={busy} className="text-xs text-fog-500 hover:text-cyber-400">
-            Withdraw
-          </button>
+          <button onClick={withdraw} disabled={busy} className="text-xs text-fog-500 hover:text-cyber-400">Withdraw</button>
         )}
         {msg && <span className="text-xs text-cyber-400">{msg}</span>}
       </div>
@@ -204,13 +272,17 @@ function MatchCard({
   entries,
   handle,
   isCaptain,
+  urls,
   onChange,
+  onView,
 }: {
   match: MatchRow;
   entries: LineupEntryRow[];
   handle: string;
   isCaptain: boolean;
+  urls: Record<string, string>;
   onChange: () => void;
+  onView: (lb: Lightbox) => void;
 }) {
   const roster = useMemo(() => getPlayers().filter((p) => p.role !== "Try Out"), []);
   const myEntry = entries.find((e) => e.player_handle === handle);
@@ -264,7 +336,7 @@ function MatchCard({
         {/* my submission */}
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-fog-600">My submission</p>
-          <MySubmission match={match} handle={handle} entry={myEntry} onSaved={onChange} />
+          <MySubmission match={match} handle={handle} entry={myEntry} urls={urls} onSaved={onChange} onView={onView} />
         </div>
 
         {/* lineup board */}
@@ -275,16 +347,28 @@ function MatchCard({
           <div className="grid gap-2 sm:grid-cols-2">
             {roster.map((p) => {
               const e = entries.find((x) => x.player_handle === p.handle);
+              const mainUrl = e?.main_image ? urls[e.main_image] : undefined;
+              const sideUrl = e?.side_image ? urls[e.side_image] : undefined;
               return (
                 <div
                   key={p.handle}
-                  className="flex items-center gap-3 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2"
+                  className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2"
                   style={{ opacity: e ? 1 : 0.55 }}
                 >
-                  <span className="w-20 shrink-0 truncate text-sm text-fog-200">{p.name}</span>
+                  <span className="w-16 shrink-0 truncate text-sm text-fog-200">{p.name}</span>
                   {e ? (
                     <>
+                      {mainUrl && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={mainUrl}
+                          alt=""
+                          onClick={() => onView({ main: mainUrl, side: sideUrl })}
+                          className="h-9 w-14 shrink-0 cursor-pointer border border-white/10 object-cover"
+                        />
+                      )}
                       <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
+                      {e.side_image && <span className="text-[10px] uppercase tracking-wide text-brand-300">+side</span>}
                       {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
                     </>
                   ) : (
@@ -416,6 +500,8 @@ export default function WarRoomPage() {
   const [busy, setBusy] = useState(false);
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [entries, setEntries] = useState<LineupEntryRow[]>([]);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [lightbox, setLightbox] = useState<Lightbox>(null);
 
   const handle = useMemo(() => {
     const e = session?.user?.email?.toLowerCase();
@@ -432,7 +518,10 @@ export default function WarRoomPage() {
     if (!ok) return;
     const ms = await fetchMatches();
     setMatches(ms);
-    setEntries(await fetchEntries(ms.map((m) => m.id)));
+    const es = await fetchEntries(ms.map((m) => m.id));
+    setEntries(es);
+    const paths = es.flatMap((e) => [e.main_image, e.side_image]).filter(Boolean) as string[];
+    setUrls(await signedUrls(paths));
   }, []);
 
   useEffect(() => {
@@ -508,11 +597,37 @@ export default function WarRoomPage() {
                   entries={entries.filter((e) => e.match_id === m.id)}
                   handle={handle}
                   isCaptain={!!isCaptain}
+                  urls={urls}
                   onChange={load}
+                  onView={setLightbox}
                 />
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {lightbox && (lightbox.main || lightbox.side) && (
+        <div
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-[100] grid place-items-center overflow-auto bg-black/85 p-6"
+        >
+          <div className="flex max-h-[90vh] flex-col items-center gap-3 sm:flex-row sm:items-start" onClick={(e) => e.stopPropagation()}>
+            {lightbox.main && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={lightbox.main} alt="main deck" className="max-h-[85vh] max-w-full border border-white/15 object-contain" />
+            )}
+            {lightbox.side && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={lightbox.side} alt="side deck" className="max-h-[85vh] max-w-full border border-white/15 object-contain" />
+            )}
+          </div>
+          <button
+            onClick={() => setLightbox(null)}
+            className="fixed right-5 top-5 -skew-x-12 border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white hover:bg-white/20"
+          >
+            <span className="block skew-x-12">Close</span>
+          </button>
         </div>
       )}
     </Shell>
