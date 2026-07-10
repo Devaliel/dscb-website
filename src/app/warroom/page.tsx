@@ -407,7 +407,11 @@ function MatchCard({
     onChange();
   }
   async function setRules(slug: string) {
-    await getBrowserSupabase().from("matches").update({ rules_preset: slug || null }).eq("id", match.id);
+    const preset = RULE_PRESETS[slug];
+    await getBrowserSupabase()
+      .from("matches")
+      .update({ rules_preset: slug || null, ...(preset ? { tournament_name: preset.name } : {}) })
+      .eq("id", match.id);
     onChange();
   }
   async function remove() {
@@ -504,9 +508,9 @@ function MatchCard({
             <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-300">
               <Star className="h-2.5 w-2.5" /> Captain tools
             </p>
-            <label className="mb-1 block text-[11px] text-fog-600">Tournament rules booklet — members read this before submitting</label>
+            <label className="mb-1 block text-[11px] text-fog-600">Tournament — attaches its rules booklet members read before submitting</label>
             <select className={inputCls + " mb-3"} value={match.rules_preset ?? ""} onChange={(e) => setRules(e.target.value)}>
-              <option value="">No rules attached</option>
+              <option value="">No tournament attached</option>
               {Object.values(RULE_PRESETS).map((r) => (
                 <option key={r.slug} value={r.slug}>{r.name} — {r.format}</option>
               ))}
@@ -554,12 +558,14 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
   const [open, setOpen] = useState(false);
   const [opponent, setOpponent] = useState("");
   const [publicLabel, setPublicLabel] = useState("");
-  const [tournament, setTournament] = useState("");
+  const [tourSel, setTourSel] = useState(""); // "" none · preset slug · CUSTOM
+  const [customName, setCustomName] = useState("");
   const [when, setWhen] = useState("");
   const [format, setFormat] = useState("relay");
-  const [rules, setRules] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+
+  const preset = RULE_PRESETS[tourSel];
 
   async function create() {
     if (!opponent.trim() || !when) {
@@ -568,18 +574,20 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
     }
     setBusy(true);
     setMsg(null);
+    // the tournament dropdown drives the display name AND the attached rules booklet
+    const tournamentName = preset ? preset.name : tourSel === CUSTOM ? customName.trim() : "";
     const { error } = await getBrowserSupabase().from("matches").insert({
       opponent_team: opponent.trim(),
       public_label: publicLabel.trim() || null,
-      tournament_name: tournament.trim(),
+      tournament_name: tournamentName,
       scheduled_at: new Date(when).toISOString(),
       format,
-      rules_preset: rules || null,
+      rules_preset: preset ? preset.slug : null,
     });
     setBusy(false);
     if (error) setMsg(error.message);
     else {
-      setOpponent(""); setPublicLabel(""); setTournament(""); setWhen(""); setRules(""); setOpen(false);
+      setOpponent(""); setPublicLabel(""); setTourSel(""); setCustomName(""); setWhen(""); setOpen(false);
       onCreated();
     }
   }
@@ -598,18 +606,24 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
       <div className="grid gap-3 sm:grid-cols-2">
         <input className={inputCls} placeholder="Opponent team *" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
         <input className={inputCls} placeholder="Public label (optional — hides opponent)" value={publicLabel} onChange={(e) => setPublicLabel(e.target.value)} />
-        <input className={inputCls} placeholder="Tournament name" value={tournament} onChange={(e) => setTournament(e.target.value)} />
+        <div>
+          <select className={inputCls} value={tourSel} onChange={(e) => setTourSel(e.target.value)}>
+            <option value="">Tournament — none / friendly</option>
+            {Object.values(RULE_PRESETS).map((r) => (
+              <option key={r.slug} value={r.slug}>{r.name} — {r.format}</option>
+            ))}
+            <option value={CUSTOM}>Other (custom)…</option>
+          </select>
+          {tourSel === CUSTOM && (
+            <input className={inputCls + " mt-2"} placeholder="Tournament name" value={customName} onChange={(e) => setCustomName(e.target.value)} />
+          )}
+          {preset && <p className="mt-1 text-[11px] text-brand-300">Attaches the {preset.name} rules booklet · slots: {preset.deckSlots[0].replace(" *", "")} + {preset.deckSlots[1].replace(" (optional)", "")}</p>}
+        </div>
         <input className={inputCls} type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
         <select className={inputCls} value={format} onChange={(e) => setFormat(e.target.value)}>
           <option value="relay">Survival relay</option>
           <option value="bo3">Best of 3 babak</option>
           <option value="other">Other</option>
-        </select>
-        <select className={inputCls} value={rules} onChange={(e) => setRules(e.target.value)}>
-          <option value="">No rules booklet</option>
-          {Object.values(RULE_PRESETS).map((r) => (
-            <option key={r.slug} value={r.slug}>{r.name}</option>
-          ))}
         </select>
       </div>
       <div className="mt-4 flex items-center gap-3">
