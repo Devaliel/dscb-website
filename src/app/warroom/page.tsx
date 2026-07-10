@@ -8,6 +8,7 @@ import { getBrowserSupabase, supabaseEnabled } from "@/lib/supabase";
 import { EMAIL_TO_HANDLE } from "@/lib/blog-db";
 import { getPlayer, getPlayers, getAllDecks, analyzeLineup } from "@/lib/data";
 import { fetchMatches, fetchEntries, warroomReady, uploadDecklist, signedUrls, type MatchRow, type LineupEntryRow } from "@/lib/warroom";
+import { getRulePreset, RULE_PRESETS } from "@/lib/tournament-rules";
 
 type Lightbox = { main?: string; side?: string } | null;
 
@@ -111,6 +112,7 @@ function MySubmission({
 
   const mainUrl = mainPreview ?? (mainPath ? urls[mainPath] : undefined);
   const sideUrl = sidePreview ?? (sidePath ? urls[sidePath] : undefined);
+  const [mainLabel, sideLabel] = getRulePreset(match.rules_preset)?.deckSlots ?? ["Main deck *", "Side deck (optional)"];
 
   async function pick(file: File, which: "main" | "side") {
     (which === "main" ? setUpMain : setUpSide)(true);
@@ -202,8 +204,8 @@ function MySubmission({
       </div>
 
       <div className="flex flex-wrap gap-5">
-        <ImageSlot label="Main deck *" url={mainUrl} uploading={upMain} onFile={(f) => pick(f, "main")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
-        <ImageSlot label="Side deck (optional)" url={sideUrl} uploading={upSide} onFile={(f) => pick(f, "side")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
+        <ImageSlot label={mainLabel} url={mainUrl} uploading={upMain} onFile={(f) => pick(f, "main")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
+        <ImageSlot label={sideLabel} url={sideUrl} uploading={upSide} onFile={(f) => pick(f, "side")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
       </div>
 
       <input className={inputCls} placeholder="Tech note (optional)" value={tech} onChange={(e) => setTech(e.target.value)} />
@@ -266,6 +268,109 @@ function MetaAnalyst({ entries, expected }: { entries: LineupEntryRow[]; expecte
   );
 }
 
+/* ── collapsible tournament-rules booklet ── */
+function RulesPanel({ slug }: { slug: string | null }) {
+  const preset = getRulePreset(slug);
+  const [open, setOpen] = useState(false);
+  if (!preset) return null;
+  return (
+    <div className="rounded-xl border border-brand-500/25 bg-brand-500/[0.06]">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+      >
+        <span className="flex items-center gap-2">
+          <Star className="h-3 w-3 text-brand-300" />
+          <span className="font-display text-sm font-extrabold uppercase italic tracking-wide text-fog-100">{preset.name} rules</span>
+          <span className="hidden text-xs text-fog-500 sm:inline">· {preset.format}</span>
+        </span>
+        <span className="text-xs text-brand-300">{open ? "Hide ▲" : "Read ▼"}</span>
+      </button>
+      {open && (
+        <div className="space-y-4 border-t border-white/10 px-4 py-4">
+          <p className="text-xs text-fog-500 sm:hidden">{preset.format}</p>
+          {preset.sections.map((s) => (
+            <div key={s.heading}>
+              <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-brand-300">{s.heading}</p>
+              <ul className="space-y-1">
+                {s.body.map((line, i) => (
+                  <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-fog-300">
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-fog-600" aria-hidden />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── sealed lineup reveal (locked / done matches) ── */
+function SealedLineup({
+  entries,
+  urls,
+  onView,
+}: {
+  entries: LineupEntryRow[];
+  urls: Record<string, string>;
+  onView: (lb: Lightbox) => void;
+}) {
+  const roster = useMemo(() => getPlayers().filter((p) => p.role !== "Try Out"), []);
+  return (
+    <div>
+      <p className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gold-500">
+        <Star className="h-3 w-3" /> Sealed lineup · locked
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {roster.map((p) => {
+          const e = entries.find((x) => x.player_handle === p.handle);
+          const mainUrl = e?.main_image ? urls[e.main_image] : undefined;
+          const sideUrl = e?.side_image ? urls[e.side_image] : undefined;
+          if (!e) {
+            return (
+              <div key={p.handle} className="flex items-center gap-3 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-3 opacity-45">
+                <span className="text-sm text-fog-200">{p.name}</span>
+                <span className="text-xs italic text-fog-600">did not submit</span>
+              </div>
+            );
+          }
+          return (
+            <div
+              key={p.handle}
+              className="relative overflow-hidden rounded-lg border border-white/10 bg-ink-900/60 p-3"
+              style={{ boxShadow: "inset 3px 0 0 var(--color-gold-500)" }}
+            >
+              <div className="mb-2.5 flex items-center justify-between gap-2">
+                <span className="font-display text-sm font-bold uppercase italic tracking-wide text-fog-100">{p.name}</span>
+                {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
+              </div>
+              <div className="flex items-center gap-2.5">
+                {mainUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={mainUrl} alt="" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-14 w-20 shrink-0 cursor-pointer border border-white/10 object-cover" />
+                ) : (
+                  <div className="grid h-14 w-20 shrink-0 place-items-center border border-white/10 text-[10px] text-fog-600">no image</div>
+                )}
+                {sideUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={sideUrl} alt="" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-14 w-20 shrink-0 cursor-pointer border border-white/10 object-cover" />
+                )}
+                <div className="min-w-0">
+                  <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
+                  {e.tech_note && <p className="mt-1 truncate text-[11px] text-fog-500">{e.tech_note}</p>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 /* ── one match card ── */
 function MatchCard({
   match,
@@ -301,6 +406,10 @@ function MatchCard({
     setSavingMeta(false);
     onChange();
   }
+  async function setRules(slug: string) {
+    await getBrowserSupabase().from("matches").update({ rules_preset: slug || null }).eq("id", match.id);
+    onChange();
+  }
   async function remove() {
     if (!window.confirm("Delete this match and all its submissions?")) return;
     await getBrowserSupabase().from("matches").delete().eq("id", match.id);
@@ -333,52 +442,61 @@ function MatchCard({
       </div>
 
       <div className="relative space-y-5 p-5 sm:p-6">
-        {/* my submission */}
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-fog-600">My submission</p>
-          <MySubmission match={match} handle={handle} entry={myEntry} urls={urls} onSaved={onChange} onView={onView} />
-        </div>
+        {/* tournament rules */}
+        <RulesPanel slug={match.rules_preset} />
 
-        {/* lineup board */}
-        <div>
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-fog-600">
-            Lineup board · {entries.length}/{roster.length} in
-          </p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {roster.map((p) => {
-              const e = entries.find((x) => x.player_handle === p.handle);
-              const mainUrl = e?.main_image ? urls[e.main_image] : undefined;
-              const sideUrl = e?.side_image ? urls[e.side_image] : undefined;
-              return (
-                <div
-                  key={p.handle}
-                  className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2"
-                  style={{ opacity: e ? 1 : 0.55 }}
-                >
-                  <span className="w-16 shrink-0 truncate text-sm text-fog-200">{p.name}</span>
-                  {e ? (
-                    <>
-                      {mainUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={mainUrl}
-                          alt=""
-                          onClick={() => onView({ main: mainUrl, side: sideUrl })}
-                          className="h-9 w-14 shrink-0 cursor-pointer border border-white/10 object-cover"
-                        />
+        {match.status === "open" ? (
+          <>
+            {/* my submission */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-fog-600">My submission</p>
+              <MySubmission match={match} handle={handle} entry={myEntry} urls={urls} onSaved={onChange} onView={onView} />
+            </div>
+
+            {/* live lineup board */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-fog-600">
+                Lineup board · {entries.length}/{roster.length} in
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {roster.map((p) => {
+                  const e = entries.find((x) => x.player_handle === p.handle);
+                  const mainUrl = e?.main_image ? urls[e.main_image] : undefined;
+                  const sideUrl = e?.side_image ? urls[e.side_image] : undefined;
+                  return (
+                    <div
+                      key={p.handle}
+                      className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2"
+                      style={{ opacity: e ? 1 : 0.55 }}
+                    >
+                      <span className="w-16 shrink-0 truncate text-sm text-fog-200">{p.name}</span>
+                      {e ? (
+                        <>
+                          {mainUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={mainUrl}
+                              alt=""
+                              onClick={() => onView({ main: mainUrl, side: sideUrl })}
+                              className="h-9 w-14 shrink-0 cursor-pointer border border-white/10 object-cover"
+                            />
+                          )}
+                          <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
+                          {e.side_image && <span className="text-[10px] uppercase tracking-wide text-brand-300">+side</span>}
+                          {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
+                        </>
+                      ) : (
+                        <span className="text-xs italic text-fog-600">— no pick yet —</span>
                       )}
-                      <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
-                      {e.side_image && <span className="text-[10px] uppercase tracking-wide text-brand-300">+side</span>}
-                      {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
-                    </>
-                  ) : (
-                    <span className="text-xs italic text-fog-600">— no pick yet —</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : (
+          <SealedLineup entries={entries} urls={urls} onView={onView} />
+        )}
 
         {/* captain tools */}
         {isCaptain && (
@@ -386,6 +504,14 @@ function MatchCard({
             <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-300">
               <Star className="h-2.5 w-2.5" /> Captain tools
             </p>
+            <label className="mb-1 block text-[11px] text-fog-600">Tournament rules booklet — members read this before submitting</label>
+            <select className={inputCls + " mb-3"} value={match.rules_preset ?? ""} onChange={(e) => setRules(e.target.value)}>
+              <option value="">No rules attached</option>
+              {Object.values(RULE_PRESETS).map((r) => (
+                <option key={r.slug} value={r.slug}>{r.name} — {r.format}</option>
+              ))}
+            </select>
+
             <label className="mb-1 block text-[11px] text-fog-600">Expected opponent decks (comma-separated) — feeds the analyst</label>
             <div className="flex flex-wrap gap-2">
               <input className={inputCls + " flex-1"} placeholder="e.g. Snake Eyes, Labrynth, Tenpai" value={expected} onChange={(e) => setExpected(e.target.value)} />
@@ -431,6 +557,7 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
   const [tournament, setTournament] = useState("");
   const [when, setWhen] = useState("");
   const [format, setFormat] = useState("relay");
+  const [rules, setRules] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -447,11 +574,12 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
       tournament_name: tournament.trim(),
       scheduled_at: new Date(when).toISOString(),
       format,
+      rules_preset: rules || null,
     });
     setBusy(false);
     if (error) setMsg(error.message);
     else {
-      setOpponent(""); setPublicLabel(""); setTournament(""); setWhen(""); setOpen(false);
+      setOpponent(""); setPublicLabel(""); setTournament(""); setWhen(""); setRules(""); setOpen(false);
       onCreated();
     }
   }
@@ -476,6 +604,12 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
           <option value="relay">Survival relay</option>
           <option value="bo3">Best of 3 babak</option>
           <option value="other">Other</option>
+        </select>
+        <select className={inputCls} value={rules} onChange={(e) => setRules(e.target.value)}>
+          <option value="">No rules booklet</option>
+          {Object.values(RULE_PRESETS).map((r) => (
+            <option key={r.slug} value={r.slug}>{r.name}</option>
+          ))}
         </select>
       </div>
       <div className="mt-4 flex items-center gap-3">

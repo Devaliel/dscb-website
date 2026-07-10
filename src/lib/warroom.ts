@@ -11,6 +11,7 @@ export interface MatchRow {
   status: "open" | "locked" | "done";
   notes: string | null;
   expected_opponent_decks: string | null;
+  rules_preset: string | null;
   created_at: string;
 }
 
@@ -28,7 +29,7 @@ export interface LineupEntryRow {
   updated_at: string;
 }
 
-const MATCH_COLS = "id,opponent_team,public_label,tournament_name,scheduled_at,format,status,notes,expected_opponent_decks,created_at";
+const MATCH_COLS = "id,opponent_team,public_label,tournament_name,scheduled_at,format,status,notes,expected_opponent_decks,rules_preset,created_at";
 const ENTRY_COLS = "id,match_id,player_handle,deck_slug,deck_name,lineup_role,tech_note,main_image,side_image,updated_at";
 
 const DECKLISTS = "decklists";

@@ -12,8 +12,12 @@ create table if not exists public.matches (
   status text not null default 'open' check (status in ('open','locked','done')),
   notes text,
   expected_opponent_decks text,      -- captain scouting input (comma-separated) for the analyzer
+  rules_preset text,                 -- rule booklet slug, e.g. 't2-trials' (see src/lib/tournament-rules.ts)
   created_at timestamptz not null default now()
 );
+
+-- safe to re-run if the table was created before rules presets existed:
+alter table public.matches add column if not exists rules_preset text;
 
 alter table public.matches enable row level security;
 create policy "public read matches" on public.matches for select using (true);
