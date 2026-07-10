@@ -28,6 +28,13 @@ function relative(iso: string): string {
   return `in ${m}m`;
 }
 
+/** ISO timestamp → local `datetime-local` input value (for pre-filling the edit form). */
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 const STATUS_STYLE: Record<MatchRow["status"], { label: string; color: string }> = {
   open: { label: "Open", color: "var(--color-brand-400)" },
   locked: { label: "Locked", color: "var(--color-gold-500)" },
@@ -394,6 +401,7 @@ function MatchCard({
   const st = STATUS_STYLE[match.status];
   const [expected, setExpected] = useState(match.expected_opponent_decks ?? "");
   const [savingMeta, setSavingMeta] = useState(false);
+  const [proxyHandle, setProxyHandle] = useState<string | null>(null);
   const expectedList = expected.split(",").map((s) => s.trim()).filter(Boolean);
 
   async function setStatus(status: MatchRow["status"]) {
@@ -467,11 +475,16 @@ function MatchCard({
                   const e = entries.find((x) => x.player_handle === p.handle);
                   const mainUrl = e?.main_image ? urls[e.main_image] : undefined;
                   const sideUrl = e?.side_image ? urls[e.side_image] : undefined;
+                  const active = proxyHandle === p.handle;
                   return (
                     <div
                       key={p.handle}
-                      className="flex items-center gap-2.5 rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2"
-                      style={{ opacity: e ? 1 : 0.55 }}
+                      className="flex items-center gap-2.5 rounded-lg border px-3 py-2"
+                      style={{
+                        opacity: e ? 1 : 0.55,
+                        borderColor: active ? "var(--color-brand-400)" : "rgba(255,255,255,0.05)",
+                        background: active ? "color-mix(in oklab, var(--color-brand-500) 8%, transparent)" : "rgba(255,255,255,0.02)",
+                      }}
                     >
                       <span className="w-16 shrink-0 truncate text-sm text-fog-200">{p.name}</span>
                       {e ? (
@@ -492,10 +505,34 @@ function MatchCard({
                       ) : (
                         <span className="text-xs italic text-fog-600">— no pick yet —</span>
                       )}
+                      {isCaptain && (
+                        <button
+                          type="button"
+                          onClick={() => setProxyHandle((h) => (h === p.handle ? null : p.handle))}
+                          className="ml-auto shrink-0 text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:text-brand-200"
+                        >
+                          {active ? "Close" : e ? "Edit" : "+ Add"}
+                        </button>
+                      )}
                     </div>
                   );
                 })}
               </div>
+              {isCaptain && proxyHandle && (
+                <div className="mt-3 rounded-lg border border-brand-500/25 bg-brand-500/[0.05] p-4">
+                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-brand-300">
+                    Captain entry — on behalf of {getPlayer(proxyHandle)?.name ?? proxyHandle}
+                  </p>
+                  <MySubmission
+                    match={match}
+                    handle={proxyHandle}
+                    entry={entries.find((x) => x.player_handle === proxyHandle)}
+                    urls={urls}
+                    onSaved={() => { onChange(); setProxyHandle(null); }}
+                    onView={onView}
+                  />
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -527,6 +564,7 @@ function MatchCard({
             <MetaAnalyst entries={entries} expected={expectedList} />
 
             <div className="mt-4 flex flex-wrap gap-2">
+              <EditMatch match={match} onSaved={onChange} />
               {match.status === "open" && (
                 <button onClick={() => setStatus("locked")} className="-skew-x-12 bg-gold-500/80 px-4 py-1.5 text-xs font-bold uppercase text-ink-950 hover:bg-gold-500">
                   <span className="block skew-x-12">Lock lineup</span>
@@ -553,6 +591,50 @@ function MatchCard({
   );
 }
 
+/* ── shared match fields (create + edit) ── */
+function MatchFields({
+  opponent, setOpponent,
+  publicLabel, setPublicLabel,
+  tourSel, setTourSel,
+  customName, setCustomName,
+  when, setWhen,
+  format, setFormat,
+}: {
+  opponent: string; setOpponent: (v: string) => void;
+  publicLabel: string; setPublicLabel: (v: string) => void;
+  tourSel: string; setTourSel: (v: string) => void;
+  customName: string; setCustomName: (v: string) => void;
+  when: string; setWhen: (v: string) => void;
+  format: string; setFormat: (v: string) => void;
+}) {
+  const preset = RULE_PRESETS[tourSel];
+  return (
+    <div className="grid gap-3 sm:grid-cols-2">
+      <input className={inputCls} placeholder="Opponent team *" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
+      <input className={inputCls} placeholder="Public label (optional — hides opponent)" value={publicLabel} onChange={(e) => setPublicLabel(e.target.value)} />
+      <div>
+        <select className={inputCls} value={tourSel} onChange={(e) => setTourSel(e.target.value)}>
+          <option value="">Tournament — none / friendly</option>
+          {Object.values(RULE_PRESETS).map((r) => (
+            <option key={r.slug} value={r.slug}>{r.name} — {r.format}</option>
+          ))}
+          <option value={CUSTOM}>Other (custom)…</option>
+        </select>
+        {tourSel === CUSTOM && (
+          <input className={inputCls + " mt-2"} placeholder="Tournament name" value={customName} onChange={(e) => setCustomName(e.target.value)} />
+        )}
+        {preset && <p className="mt-1 text-[11px] text-brand-300">Attaches the {preset.name} rules booklet · slots: {preset.deckSlots[0].replace(" *", "")} + {preset.deckSlots[1].replace(" (optional)", "")}</p>}
+      </div>
+      <input className={inputCls} type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+      <select className={inputCls} value={format} onChange={(e) => setFormat(e.target.value)}>
+        <option value="relay">Survival relay</option>
+        <option value="bo3">Best of 3 babak</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+  );
+}
+
 /* ── create-match form (captain) ── */
 function CreateMatch({ onCreated }: { onCreated: () => void }) {
   const [open, setOpen] = useState(false);
@@ -565,8 +647,6 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  const preset = RULE_PRESETS[tourSel];
-
   async function create() {
     if (!opponent.trim() || !when) {
       setMsg("Opponent and date/time are required.");
@@ -575,6 +655,7 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
     setBusy(true);
     setMsg(null);
     // the tournament dropdown drives the display name AND the attached rules booklet
+    const preset = RULE_PRESETS[tourSel];
     const tournamentName = preset ? preset.name : tourSel === CUSTOM ? customName.trim() : "";
     const { error } = await getBrowserSupabase().from("matches").insert({
       opponent_team: opponent.trim(),
@@ -603,34 +684,86 @@ function CreateMatch({ onCreated }: { onCreated: () => void }) {
   return (
     <div className="clip-corner relative border border-white/10 bg-ink-850 p-6" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}>
       <h3 className="text-persona mb-4 text-lg text-fog-100">New upcoming match</h3>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <input className={inputCls} placeholder="Opponent team *" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
-        <input className={inputCls} placeholder="Public label (optional — hides opponent)" value={publicLabel} onChange={(e) => setPublicLabel(e.target.value)} />
-        <div>
-          <select className={inputCls} value={tourSel} onChange={(e) => setTourSel(e.target.value)}>
-            <option value="">Tournament — none / friendly</option>
-            {Object.values(RULE_PRESETS).map((r) => (
-              <option key={r.slug} value={r.slug}>{r.name} — {r.format}</option>
-            ))}
-            <option value={CUSTOM}>Other (custom)…</option>
-          </select>
-          {tourSel === CUSTOM && (
-            <input className={inputCls + " mt-2"} placeholder="Tournament name" value={customName} onChange={(e) => setCustomName(e.target.value)} />
-          )}
-          {preset && <p className="mt-1 text-[11px] text-brand-300">Attaches the {preset.name} rules booklet · slots: {preset.deckSlots[0].replace(" *", "")} + {preset.deckSlots[1].replace(" (optional)", "")}</p>}
-        </div>
-        <input className={inputCls} type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
-        <select className={inputCls} value={format} onChange={(e) => setFormat(e.target.value)}>
-          <option value="relay">Survival relay</option>
-          <option value="bo3">Best of 3 babak</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
+      <MatchFields
+        opponent={opponent} setOpponent={setOpponent}
+        publicLabel={publicLabel} setPublicLabel={setPublicLabel}
+        tourSel={tourSel} setTourSel={setTourSel}
+        customName={customName} setCustomName={setCustomName}
+        when={when} setWhen={setWhen}
+        format={format} setFormat={setFormat}
+      />
       <div className="mt-4 flex items-center gap-3">
         <button onClick={create} disabled={busy} className="-skew-x-12 bg-brand-500 px-6 py-2 disabled:opacity-50" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.5)" }}>
           <span className="block skew-x-12 font-display text-xs font-extrabold uppercase italic tracking-wide text-white">{busy ? "Creating…" : "Create match"}</span>
         </button>
         <button onClick={() => setOpen(false)} className="text-sm text-fog-500 hover:text-fog-100">Cancel</button>
+        {msg && <span className="text-xs text-cyber-400">{msg}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ── edit-match form (captain) ── */
+function EditMatch({ match, onSaved }: { match: MatchRow; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [opponent, setOpponent] = useState(match.opponent_team);
+  const [publicLabel, setPublicLabel] = useState(match.public_label ?? "");
+  const [tourSel, setTourSel] = useState(match.rules_preset ?? (match.tournament_name ? CUSTOM : ""));
+  const [customName, setCustomName] = useState(match.rules_preset ? "" : match.tournament_name);
+  const [when, setWhen] = useState(() => toLocalInput(match.scheduled_at));
+  const [format, setFormat] = useState(match.format);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  async function save() {
+    if (!opponent.trim() || !when) {
+      setMsg("Opponent and date/time are required.");
+      return;
+    }
+    setBusy(true);
+    setMsg(null);
+    const preset = RULE_PRESETS[tourSel];
+    const tournamentName = preset ? preset.name : tourSel === CUSTOM ? customName.trim() : "";
+    const { error } = await getBrowserSupabase()
+      .from("matches")
+      .update({
+        opponent_team: opponent.trim(),
+        public_label: publicLabel.trim() || null,
+        tournament_name: tournamentName,
+        scheduled_at: new Date(when).toISOString(),
+        format,
+        rules_preset: preset ? preset.slug : null,
+      })
+      .eq("id", match.id);
+    setBusy(false);
+    if (error) setMsg(error.message);
+    else { setOpen(false); onSaved(); }
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="-skew-x-12 border border-white/15 px-4 py-1.5 text-xs font-bold uppercase text-fog-300 hover:text-fog-100">
+        <span className="block skew-x-12">Edit match</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-3 w-full rounded-lg border border-brand-500/25 bg-ink-900/60 p-4">
+      <p className="mb-3 text-xs font-bold uppercase tracking-wider text-brand-300">Edit match details</p>
+      <MatchFields
+        opponent={opponent} setOpponent={setOpponent}
+        publicLabel={publicLabel} setPublicLabel={setPublicLabel}
+        tourSel={tourSel} setTourSel={setTourSel}
+        customName={customName} setCustomName={setCustomName}
+        when={when} setWhen={setWhen}
+        format={format} setFormat={setFormat}
+      />
+      <div className="mt-3 flex items-center gap-3">
+        <button onClick={save} disabled={busy} className="-skew-x-12 bg-brand-500 px-5 py-1.5 text-xs font-bold uppercase text-white disabled:opacity-50">
+          <span className="block skew-x-12">{busy ? "Saving…" : "Save changes"}</span>
+        </button>
+        <button onClick={() => setOpen(false)} className="text-xs text-fog-500 hover:text-fog-100">Cancel</button>
         {msg && <span className="text-xs text-cyber-400">{msg}</span>}
       </div>
     </div>
