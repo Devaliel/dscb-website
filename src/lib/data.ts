@@ -1915,3 +1915,95 @@ export function getDeckPilots(deckSlug: string) {
     .filter((p) => p.player)
     .sort((a, b) => b.wins + b.losses - (a.wins + a.losses));
 }
+
+/* ═══════════════ War Room — lineup analyzer ═══════════════ */
+
+/** Normalize any opponent/deck free-text to a comparable key (our slug when aliased). */
+function normalizeOpponentKey(name: string): string {
+  const low = name.trim().toLowerCase();
+  return opponentAlias[low] ?? low;
+}
+
+/**
+ * Global head-to-head tally across every recorded tournament round:
+ *   ourDeckSlug → opponentKey → { w, l }
+ * opponentKey is our slug when the opponent's deck aliases to one, else the raw lowercased name.
+ */
+export function getGlobalMatchupTally(): Record<string, Record<string, { w: number; l: number }>> {
+  const tally: Record<string, Record<string, { w: number; l: number }>> = {};
+  for (const t of tournaments) {
+    if (!t.weeks) continue;
+    for (const w of t.weeks) {
+      for (const r of w.rounds ?? []) {
+        const ourSlug = w.deckList.find((d) => d.handle === r.dsPlayerHandle)?.deckSlug;
+        if (!ourSlug || !r.opponentDeck) continue;
+        const oppKey = normalizeOpponentKey(r.opponentDeck);
+        (tally[ourSlug] ??= {});
+        (tally[ourSlug][oppKey] ??= { w: 0, l: 0 });
+        tally[ourSlug][oppKey].w += r.dsWins;
+        tally[ourSlug][oppKey].l += r.dsLosses;
+      }
+    }
+  }
+  return tally;
+}
+
+export interface LineupPick {
+  handle: string;
+  deckSlug?: string;
+  deckName: string;
+}
+
+export interface LineupAnalysis {
+  duplicates: string[]; // deck names fielded by more than one player
+  perDeck: {
+    handle: string;
+    deckName: string;
+    deckSlug?: string;
+    overall: { wins: number; losses: number; wr: number } | null; // career record of that deck
+    vsExpected: { opponent: string; w: number; l: number; wr: number | null }[];
+  }[];
+  coverageGaps: string[]; // expected archetypes no submitted deck has a winning record against
+}
+
+/**
+ * Advise a submitted lineup using real historical data.
+ * `expected` = archetype names the captain expects to face (optional).
+ */
+export function analyzeLineup(picks: LineupPick[], expected: string[] = []): LineupAnalysis {
+  const tally = getGlobalMatchupTally();
+
+  // duplicate decks in the lineup
+  const nameCount = new Map<string, number>();
+  for (const p of picks) nameCount.set(p.deckName, (nameCount.get(p.deckName) ?? 0) + 1);
+  const duplicates = [...nameCount.entries()].filter(([, n]) => n > 1).map(([name]) => name);
+
+  const expectedKeys = expected.map((e) => ({ raw: e.trim(), key: normalizeOpponentKey(e) })).filter((e) => e.raw);
+
+  const perDeck = picks.map((p) => {
+    const deck = p.deckSlug ? getDeck(p.deckSlug) : undefined;
+    const overall = deck
+      ? { wins: deck.wins, losses: deck.losses, wr: deck.wins + deck.losses === 0 ? 0 : Math.round((deck.wins / (deck.wins + deck.losses)) * 100) }
+      : null;
+    const vsExpected = expectedKeys.map(({ raw, key }) => {
+      const rec = p.deckSlug ? tally[p.deckSlug]?.[key] : undefined;
+      const games = (rec?.w ?? 0) + (rec?.l ?? 0);
+      return { opponent: raw, w: rec?.w ?? 0, l: rec?.l ?? 0, wr: games === 0 ? null : Math.round(((rec?.w ?? 0) / games) * 100) };
+    });
+    return { handle: p.handle, deckName: p.deckName, deckSlug: p.deckSlug, overall, vsExpected };
+  });
+
+  // a gap = an expected archetype where no submitted deck has a recorded winning record (>50%)
+  const coverageGaps = expectedKeys
+    .filter(({ key }) => {
+      const covered = picks.some((p) => {
+        const rec = p.deckSlug ? tally[p.deckSlug]?.[key] : undefined;
+        const games = (rec?.w ?? 0) + (rec?.l ?? 0);
+        return games > 0 && (rec!.w / games) > 0.5;
+      });
+      return !covered;
+    })
+    .map(({ raw }) => raw);
+
+  return { duplicates, perDeck, coverageGaps };
+}

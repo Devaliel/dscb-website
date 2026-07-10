@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Hero from "@/components/hero";
+import NextMatch from "@/components/next-match";
 import SectionHeading from "@/components/section-heading";
 import TierTile from "@/components/tier-tile";
 import PlayerCard from "@/components/player-card";
@@ -21,6 +22,9 @@ export default function Home() {
   return (
     <>
       <Hero topDeckWr={topWr} titles={totalTitles} players={players.length} />
+
+      {/* Public upcoming-match countdown (no decks) */}
+      <NextMatch />
 
       {/* Team Decks */}
       <section className="mx-auto max-w-6xl px-6 py-20">

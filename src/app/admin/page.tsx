@@ -222,6 +222,9 @@ function MemberCard({ handle, email, onLogout }: { handle: string; email: string
           <a href="/guestbook" className={linkCls}>
             <span className="block skew-x-12">Guestbook ✦</span>
           </a>
+          <a href="/warroom" className={linkCls}>
+            <span className="block skew-x-12">War Room ⚔</span>
+          </a>
           <button
             onClick={onLogout}
             className="-skew-x-12 border border-white/10 bg-transparent px-4 py-2 text-center text-xs font-bold uppercase tracking-wide text-fog-600 transition-colors hover:border-cyber-500/50 hover:text-cyber-400"
