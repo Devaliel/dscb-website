@@ -422,7 +422,9 @@ export default function WarRoomPage() {
     return e ? EMAIL_TO_HANDLE[e] : undefined;
   }, [session]);
   const player = handle ? getPlayer(handle) : undefined;
-  const isCaptain = player?.role === "Captain" || player?.role === "Vice Captain";
+  // Darkzill (site dev) gets lineup-manager access regardless of in-game role —
+  // Cain/Sieg accounts aren't accessible to them day-to-day.
+  const isCaptain = player?.role === "Captain" || player?.role === "Vice Captain" || handle === "Darkzill";
 
   const load = useCallback(async () => {
     const ok = await warroomReady();
