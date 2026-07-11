@@ -7,10 +7,10 @@ export const EMAIL_TO_HANDLE: Record<string, string> = {
   "andresondakh121@gmail.com": "sieg121",
   "p13rr3.maxwell@gmail.com": "yuryevna",
   "cadullahrivaldy@gmail.com": "cain00",
-  // War Room self-serve — add once their Supabase auth users exist:
-  // "<mev-email>": "mev7901",
+  "jtpangemanan@gmail.com": "mev7901",
+  "takawariki@gmail.com": "awarix",
+  // War Room self-serve — add once their Supabase auth user exists:
   // "<lonts-email>": "Lonts94",
-  // "<awarix-email>": "awarix",
 };
 
 interface PostRow {
