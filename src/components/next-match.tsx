@@ -1,9 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import Star from "@/components/persona/star";
 import { fetchNextMatch, type MatchRow } from "@/lib/warroom";
+import { getAllDecks } from "@/lib/data";
+
+/** Deterministic 2 distinct deck-art images from a match id — stable per match, no flicker. */
+function pickArt(seed: string): string[] {
+  const pool = getAllDecks()
+    .map((d) => d.image)
+    .filter((img): img is string => Boolean(img));
+  if (pool.length < 2) return pool;
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const a = Math.abs(h) % pool.length;
+  let b = Math.abs(Math.imul(h ^ 0x9e3779b9, 2654435761)) % pool.length;
+  if (b === a) b = (b + 1) % pool.length;
+  return [pool[a], pool[b]];
+}
 
 /**
  * Public "Next Match" teaser — opponent + a live countdown. NEVER shows decks or lineup.
@@ -38,6 +56,23 @@ function Unit({ value, label }: { value: number; label: string }) {
   );
 }
 
+/** One angled, darkened deck-art accent. Hides itself if the image fails to load. */
+function ArtAccent({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      aria-hidden
+      onError={() => setOk(false)}
+      className={`pointer-events-none absolute select-none object-cover ${className ?? ""}`}
+      style={style}
+    />
+  );
+}
+
 export default function NextMatch() {
   const [match, setMatch] = useState<MatchRow | null>(null);
   const reduce = useReducedMotion();
@@ -51,6 +86,7 @@ export default function NextMatch() {
   }, []);
 
   const cd = useCountdown(match?.scheduled_at ?? new Date().toISOString());
+  const art = useMemo(() => (match ? pickArt(match.id) : []), [match]);
   if (!match) return null;
 
   const label = match.public_label || match.opponent_team;
@@ -71,6 +107,33 @@ export default function NextMatch() {
         className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850"
         style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}
       >
+        {/* decorative deck-art accents (right side, behind content) */}
+        {art[0] && (
+          <ArtAccent
+            src={art[0]}
+            className="right-40 top-0 hidden h-full w-48 sm:block"
+            style={{
+              clipPath: "polygon(22% 0, 100% 0, 100% 100%, 0 100%)",
+              opacity: 0.22,
+              filter: "saturate(1.15)",
+              maskImage: "linear-gradient(90deg, transparent, #000 70%)",
+              WebkitMaskImage: "linear-gradient(90deg, transparent, #000 70%)",
+            }}
+          />
+        )}
+        {art[1] && (
+          <ArtAccent
+            src={art[1]}
+            className="-right-6 top-0 hidden h-full w-52 sm:block"
+            style={{
+              clipPath: "polygon(28% 0, 100% 0, 100% 100%, 0 100%)",
+              opacity: 0.28,
+              filter: "saturate(1.15)",
+              maskImage: "linear-gradient(90deg, transparent, #000 55%)",
+              WebkitMaskImage: "linear-gradient(90deg, transparent, #000 55%)",
+            }}
+          />
+        )}
         <div className="halftone pointer-events-none absolute inset-0 opacity-[0.05]" aria-hidden />
         <div
           className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full blur-[80px]"
