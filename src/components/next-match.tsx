@@ -107,32 +107,46 @@ export default function NextMatch() {
         className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850"
         style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}
       >
-        {/* decorative deck-art accents (right side, behind content) */}
-        {art[0] && (
-          <ArtAccent
-            src={art[0]}
-            className="right-40 top-0 hidden h-full w-48 sm:block"
+        {/* decorative deck-art wash (right side, behind content) — heavily muted so it reads
+            as texture, not a collage; one soft-edged wrap, no hard seams or clashing color */}
+        {art.length > 0 && (
+          <div
+            className="pointer-events-none absolute inset-y-0 right-0 hidden w-[45%] overflow-hidden sm:block"
             style={{
-              clipPath: "polygon(22% 0, 100% 0, 100% 100%, 0 100%)",
-              opacity: 0.22,
-              filter: "saturate(1.15)",
-              maskImage: "linear-gradient(90deg, transparent, #000 70%)",
-              WebkitMaskImage: "linear-gradient(90deg, transparent, #000 70%)",
+              maskImage: "linear-gradient(90deg, transparent, #000 42%)",
+              WebkitMaskImage: "linear-gradient(90deg, transparent, #000 42%)",
             }}
-          />
-        )}
-        {art[1] && (
-          <ArtAccent
-            src={art[1]}
-            className="-right-6 top-0 hidden h-full w-52 sm:block"
-            style={{
-              clipPath: "polygon(28% 0, 100% 0, 100% 100%, 0 100%)",
-              opacity: 0.28,
-              filter: "saturate(1.15)",
-              maskImage: "linear-gradient(90deg, transparent, #000 55%)",
-              WebkitMaskImage: "linear-gradient(90deg, transparent, #000 55%)",
-            }}
-          />
+            aria-hidden
+          >
+            {art[0] && (
+              <ArtAccent
+                src={art[0]}
+                className="inset-y-0 left-0 h-full w-3/5"
+                style={{
+                  opacity: 0.4,
+                  filter: "grayscale(55%) saturate(0.75) brightness(0.5) contrast(1.05) blur(0.5px)",
+                  maskImage: "linear-gradient(90deg, transparent, #000 55%, #000 80%, transparent)",
+                  WebkitMaskImage: "linear-gradient(90deg, transparent, #000 55%, #000 80%, transparent)",
+                }}
+              />
+            )}
+            {art[1] && (
+              <ArtAccent
+                src={art[1]}
+                className="inset-y-0 right-0 h-full w-3/5"
+                style={{
+                  opacity: 0.4,
+                  filter: "grayscale(55%) saturate(0.75) brightness(0.5) contrast(1.05) blur(0.5px)",
+                  maskImage: "linear-gradient(90deg, transparent, #000 35%, #000 70%)",
+                  WebkitMaskImage: "linear-gradient(90deg, transparent, #000 35%, #000 70%)",
+                }}
+              />
+            )}
+            <div
+              className="absolute inset-0"
+              style={{ background: "color-mix(in oklab, var(--color-cyber-500) 8%, transparent)", mixBlendMode: "overlay" }}
+            />
+          </div>
         )}
         <div className="halftone pointer-events-none absolute inset-0 opacity-[0.05]" aria-hidden />
         <div
