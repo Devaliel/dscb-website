@@ -7,7 +7,11 @@ import DeckChip from "@/components/deck-chip";
 import { getBrowserSupabase, supabaseEnabled } from "@/lib/supabase";
 import { EMAIL_TO_HANDLE } from "@/lib/blog-db";
 import { getPlayer, getPlayers, getAllDecks, analyzeLineup } from "@/lib/data";
-import { fetchMatches, fetchEntries, warroomReady, uploadDecklist, signedUrls, type MatchRow, type LineupEntryRow } from "@/lib/warroom";
+import {
+  fetchMatches, fetchEntries, warroomReady, uploadDecklist, signedUrls,
+  normalizeCardName, tallyCardUsage,
+  type MatchRow, type LineupEntryRow, type KeyCard,
+} from "@/lib/warroom";
 import { getRulePreset, RULE_PRESETS } from "@/lib/tournament-rules";
 
 type Lightbox = { main?: string; side?: string } | null;
@@ -86,11 +90,145 @@ function ImageSlot({
   );
 }
 
+/* ── plain card-name tag list (captain's "Shared cards" picker) ── */
+function CardNameTags({
+  names,
+  onChange,
+  max,
+  placeholder,
+}: {
+  names: string[];
+  onChange: (names: string[]) => void;
+  max?: number;
+  placeholder?: string;
+}) {
+  const [draft, setDraft] = useState("");
+  function add() {
+    const v = draft.trim();
+    if (!v || (max && names.length >= max)) return;
+    if (names.some((n) => n.toLowerCase() === v.toLowerCase())) { setDraft(""); return; }
+    onChange([...names, v]);
+    setDraft("");
+  }
+  return (
+    <div>
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        {names.map((n, i) => (
+          <span key={i} className="flex items-center gap-1.5 rounded-full border border-brand-400/30 bg-brand-500/10 px-2.5 py-1 text-xs text-brand-200">
+            {n}
+            <button type="button" onClick={() => onChange(names.filter((_, idx) => idx !== i))} className="text-brand-400 hover:text-cyber-400">×</button>
+          </span>
+        ))}
+        {names.length === 0 && <span className="text-xs italic text-fog-600">none set</span>}
+      </div>
+      {(!max || names.length < max) && (
+        <div className="flex gap-2">
+          <input
+            className={inputCls}
+            placeholder={placeholder}
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+          />
+          <button type="button" onClick={add} className="-skew-x-12 border border-brand-400/50 bg-brand-500/15 px-4 text-xs font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30">
+            <span className="block skew-x-12">Add</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── key-card tracker (in MySubmission) — free-text tags, live team-tally warning ── */
+function KeyCardsEditor({
+  cards,
+  onChange,
+  separateArchetypes,
+  tally,
+  teamCap,
+}: {
+  cards: KeyCard[];
+  onChange: (cards: KeyCard[]) => void;
+  separateArchetypes: boolean;
+  tally: Record<string, { display: string; count: number; players: string[] }>;
+  teamCap: number;
+}) {
+  const [name, setName] = useState("");
+  const [count, setCount] = useState(1);
+  const [deck, setDeck] = useState<1 | 2>(1);
+
+  function add() {
+    const v = name.trim();
+    if (!v) return;
+    onChange([...cards, { name: v, count, deck: separateArchetypes ? deck : 1 }]);
+    setName("");
+    setCount(1);
+  }
+
+  return (
+    <div>
+      <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">
+        Key cards <span className="normal-case text-fog-600">— staples worth tracking across the team ({teamCap}-copy cap)</span>
+      </label>
+      {cards.length > 0 && (
+        <div className="mb-2 space-y-1.5">
+          {cards.map((c, i) => {
+            const existing = tally[normalizeCardName(c.name)];
+            const total = (existing?.count ?? 0) + c.count;
+            const over = total > teamCap;
+            const at = total === teamCap;
+            return (
+              <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 text-xs">
+                <span className="font-medium text-fog-100">{c.name}</span>
+                <span className="text-fog-500">×{c.count}</span>
+                {separateArchetypes && <span className="text-fog-600">Deck {c.deck}</span>}
+                <span className={over ? "text-cyber-400" : at ? "text-gold-500" : "text-fog-600"}>
+                  {total}/{teamCap} across team
+                  {existing && existing.players.length > 0 && ` · also ${existing.players.map((h) => getPlayer(h)?.name ?? h).join(", ")}`}
+                </span>
+                <button type="button" onClick={() => onChange(cards.filter((_, idx) => idx !== i))} className="ml-auto text-fog-500 hover:text-cyber-400">×</button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          className={inputCls + " min-w-[140px] flex-1"}
+          placeholder="Card name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+        />
+        <input
+          className={inputCls + " w-16"}
+          type="number"
+          min={1}
+          max={3}
+          value={count}
+          onChange={(e) => setCount(Math.max(1, Math.min(3, Number(e.target.value) || 1)))}
+        />
+        {separateArchetypes && (
+          <select className={inputCls + " w-24"} value={deck} onChange={(e) => setDeck(Number(e.target.value) as 1 | 2)}>
+            <option value={1}>Deck 1</option>
+            <option value={2}>Deck 2</option>
+          </select>
+        )}
+        <button type="button" onClick={add} className="-skew-x-12 border border-brand-400/50 bg-brand-500/15 px-4 py-2 text-xs font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30">
+          <span className="block skew-x-12">Add</span>
+        </button>
+      </div>
+      <p className="mt-1 text-[10px] text-fog-600">Limited = 1 copy, Semi-Limited = 2 — set the count yourself, it isn&apos;t checked automatically.</p>
+    </div>
+  );
+}
+
 /* ── my-deck submission form ── */
 function MySubmission({
   match,
   handle,
   entry,
+  entries,
   urls,
   onSaved,
   onView,
@@ -98,15 +236,20 @@ function MySubmission({
   match: MatchRow;
   handle: string;
   entry?: LineupEntryRow;
+  entries: LineupEntryRow[];
   urls: Record<string, string>;
   onSaved: () => void;
   onView: (lb: Lightbox) => void;
 }) {
   const decks = useMemo(() => getAllDecks(), []);
+  const preset = getRulePreset(match.rules_preset);
   const [slug, setSlug] = useState<string>(entry?.deck_slug ?? (entry && !entry.deck_slug ? CUSTOM : ""));
   const [custom, setCustom] = useState(entry && !entry.deck_slug ? entry.deck_name : "");
+  const [slug2, setSlug2] = useState<string>(entry?.deck2_slug ?? (entry?.deck2_name && !entry.deck2_slug ? CUSTOM : ""));
+  const [custom2, setCustom2] = useState(entry?.deck2_name && !entry.deck2_slug ? entry.deck2_name : "");
   const [role, setRole] = useState<"main" | "sub">(entry?.lineup_role ?? "main");
   const [tech, setTech] = useState(entry?.tech_note ?? "");
+  const [keyCards, setKeyCards] = useState<KeyCard[]>(entry?.key_cards ?? []);
   const [mainPath, setMainPath] = useState<string | null>(entry?.main_image ?? null);
   const [sidePath, setSidePath] = useState<string | null>(entry?.side_image ?? null);
   const [mainPreview, setMainPreview] = useState<string | null>(null);
@@ -119,7 +262,14 @@ function MySubmission({
 
   const mainUrl = mainPreview ?? (mainPath ? urls[mainPath] : undefined);
   const sideUrl = sidePreview ?? (sidePath ? urls[sidePath] : undefined);
-  const [mainLabel, sideLabel] = getRulePreset(match.rules_preset)?.deckSlots ?? ["Main deck *", "Side deck (optional)"];
+  const [mainLabel, sideLabel] = preset?.deckSlots ?? ["Main deck *", "Side deck (optional)"];
+  const archetypeLabel = preset?.separateArchetypes ? "Deck 1 archetype" : "Archetype";
+
+  const cardTally = useMemo(() => {
+    if (!preset?.sharedCardPool) return {};
+    const exclude = new Set((match.shared_cards ?? []).map((c) => normalizeCardName(c.name)));
+    return tallyCardUsage(entries.filter((e) => e.player_handle !== handle), exclude);
+  }, [entries, handle, match.shared_cards, preset?.sharedCardPool]);
 
   async function pick(file: File, which: "main" | "side") {
     (which === "main" ? setUpMain : setUpSide)(true);
@@ -136,6 +286,9 @@ function MySubmission({
     const deckName = slug === CUSTOM ? custom.trim() : decks.find((d) => d.slug === slug)?.name ?? "";
     if (!deckName) { setMsg("Pick a deck or type a custom archetype."); return; }
     if (!mainPath) { setMsg("Upload your main deck image."); return; }
+    const deckName2 = preset?.separateArchetypes
+      ? (slug2 === CUSTOM ? custom2.trim() : decks.find((d) => d.slug === slug2)?.name ?? "")
+      : "";
     setBusy(true);
     setMsg(null);
     const row = {
@@ -143,10 +296,13 @@ function MySubmission({
       player_handle: handle,
       deck_slug: slug === CUSTOM ? null : slug,
       deck_name: deckName,
+      deck2_slug: deckName2 ? (slug2 === CUSTOM ? null : slug2) : null,
+      deck2_name: deckName2 || null,
       lineup_role: role,
       tech_note: tech.trim() || null,
       main_image: mainPath,
       side_image: sidePath,
+      key_cards: keyCards,
       updated_at: new Date().toISOString(),
     };
     const { error } = await getBrowserSupabase().from("lineup_entries").upsert(row, { onConflict: "match_id,player_handle" });
@@ -166,7 +322,12 @@ function MySubmission({
     return (
       <div className="space-y-2 text-sm text-fog-500">
         <p>
-          {entry ? (<>You brought <span className="text-fog-100">{entry.deck_name}</span> ({entry.lineup_role}).</>) : "You didn't submit for this match."}{" "}
+          {entry ? (
+            <>
+              You brought <span className="text-fog-100">{entry.deck_name}</span>
+              {entry.deck2_name && <> + <span className="text-fog-100">{entry.deck2_name}</span></>} ({entry.lineup_role}).
+            </>
+          ) : "You didn't submit for this match."}{" "}
           Lineup is {match.status}.
         </p>
         {(mainUrl || sideUrl) && (
@@ -189,7 +350,7 @@ function MySubmission({
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">Archetype</label>
+          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">{archetypeLabel}</label>
           <select className={inputCls} value={slug} onChange={(e) => setSlug(e.target.value)}>
             <option value="">Select a deck…</option>
             {decks.map((d) => (
@@ -210,10 +371,36 @@ function MySubmission({
         </div>
       </div>
 
+      {preset?.separateArchetypes && (
+        <div>
+          <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">Deck 2 archetype (optional)</label>
+          <select className={inputCls} value={slug2} onChange={(e) => setSlug2(e.target.value)}>
+            <option value="">— not bringing a second deck —</option>
+            {decks.map((d) => (
+              <option key={d.slug} value={d.slug}>{d.name}</option>
+            ))}
+            <option value={CUSTOM}>Custom / off-meta…</option>
+          </select>
+          {slug2 === CUSTOM && (
+            <input className={inputCls + " mt-2"} placeholder="Archetype name" value={custom2} onChange={(e) => setCustom2(e.target.value)} />
+          )}
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-5">
         <ImageSlot label={mainLabel} url={mainUrl} uploading={upMain} onFile={(f) => pick(f, "main")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
         <ImageSlot label={sideLabel} url={sideUrl} uploading={upSide} onFile={(f) => pick(f, "side")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
       </div>
+
+      {preset?.sharedCardPool && (
+        <KeyCardsEditor
+          cards={keyCards}
+          onChange={setKeyCards}
+          separateArchetypes={!!preset.separateArchetypes}
+          tally={cardTally}
+          teamCap={preset.sharedCardPool.teamCap}
+        />
+      )}
 
       <input className={inputCls} placeholder="Tech note (optional)" value={tech} onChange={(e) => setTech(e.target.value)} />
       <div className="flex items-center gap-3">
@@ -367,7 +554,17 @@ function SealedLineup({
                 )}
                 <div className="min-w-0">
                   <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
+                  {e.deck2_name && <div className="mt-1"><DeckChip deckSlug={e.deck2_slug ?? undefined} name={e.deck2_name} size="sm" /></div>}
                   {e.tech_note && <p className="mt-1 truncate text-[11px] text-fog-500">{e.tech_note}</p>}
+                  {e.key_cards && e.key_cards.length > 0 && (
+                    <p className="mt-1 flex flex-wrap gap-1">
+                      {e.key_cards.map((c, i) => (
+                        <span key={i} className="rounded-full border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] text-fog-400">
+                          {c.name} ×{c.count}
+                        </span>
+                      ))}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -399,8 +596,11 @@ function MatchCard({
   const roster = useMemo(() => getPlayers().filter((p) => p.role !== "Try Out"), []);
   const myEntry = entries.find((e) => e.player_handle === handle);
   const st = STATUS_STYLE[match.status];
+  const preset = getRulePreset(match.rules_preset);
   const [expected, setExpected] = useState(match.expected_opponent_decks ?? "");
   const [savingMeta, setSavingMeta] = useState(false);
+  const [sharedCards, setSharedCards] = useState((match.shared_cards ?? []).map((c) => c.name));
+  const [savingShared, setSavingShared] = useState(false);
   const [proxyHandle, setProxyHandle] = useState<string | null>(null);
   const expectedList = expected.split(",").map((s) => s.trim()).filter(Boolean);
 
@@ -412,6 +612,13 @@ function MatchCard({
     setSavingMeta(true);
     await getBrowserSupabase().from("matches").update({ expected_opponent_decks: expected.trim() || null }).eq("id", match.id);
     setSavingMeta(false);
+    onChange();
+  }
+  async function saveSharedCards(next: string[]) {
+    setSharedCards(next);
+    setSavingShared(true);
+    await getBrowserSupabase().from("matches").update({ shared_cards: next.map((name) => ({ name })) }).eq("id", match.id);
+    setSavingShared(false);
     onChange();
   }
   async function setRules(slug: string) {
@@ -462,7 +669,7 @@ function MatchCard({
             {/* my submission */}
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-fog-600">My submission</p>
-              <MySubmission match={match} handle={handle} entry={myEntry} urls={urls} onSaved={onChange} onView={onView} />
+              <MySubmission match={match} handle={handle} entry={myEntry} entries={entries} urls={urls} onSaved={onChange} onView={onView} />
             </div>
 
             {/* live lineup board */}
@@ -499,7 +706,9 @@ function MatchCard({
                             />
                           )}
                           <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
+                          {e.deck2_name && <span className="text-[10px] uppercase tracking-wide text-brand-300">+{e.deck2_name}</span>}
                           {e.side_image && <span className="text-[10px] uppercase tracking-wide text-brand-300">+side</span>}
+                          {e.key_cards && e.key_cards.length > 0 && <span className="text-[10px] uppercase tracking-wide text-gold-500">{e.key_cards.length} key</span>}
                           {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
                         </>
                       ) : (
@@ -527,6 +736,7 @@ function MatchCard({
                     match={match}
                     handle={proxyHandle}
                     entry={entries.find((x) => x.player_handle === proxyHandle)}
+                    entries={entries}
                     urls={urls}
                     onSaved={() => { onChange(); setProxyHandle(null); }}
                     onView={onView}
@@ -560,6 +770,21 @@ function MatchCard({
                 <span className="block skew-x-12">{savingMeta ? "…" : "Save"}</span>
               </button>
             </div>
+
+            {preset?.sharedCardPool && (
+              <div className="mt-3">
+                <label className="mb-1 block text-[11px] text-fog-600">
+                  Shared cards (up to {preset.sharedCardPool.sharedSlots}) — exempt from the {preset.sharedCardPool.teamCap}-copy team cap
+                </label>
+                <CardNameTags
+                  names={sharedCards}
+                  onChange={saveSharedCards}
+                  max={preset.sharedCardPool.sharedSlots}
+                  placeholder="Card name"
+                />
+                {savingShared && <p className="mt-1 text-[10px] text-fog-600">Saving…</p>}
+              </div>
+            )}
 
             <MetaAnalyst entries={entries} expected={expectedList} />
 

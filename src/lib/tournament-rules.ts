@@ -5,6 +5,8 @@ export interface RulePreset {
   name: string;
   format: string; // one-line summary
   deckSlots: [string, string]; // labels for the two decklist upload slots
+  separateArchetypes?: boolean; // Deck 1 / Deck 2 are independent archetypes, not main+side of one deck
+  sharedCardPool?: { teamCap: number; sharedSlots: number }; // team-wide copy cap + count of exempt "shared cards"
   sections: { heading: string; body: string[] }[];
 }
 
@@ -14,6 +16,8 @@ export const RULE_PRESETS: Record<string, RulePreset> = {
     name: "T2 Trials",
     format: "3v3 · Swiss · 7 weeks · 2× BO9 per match",
     deckSlots: ["Deck 1 *", "Deck 2 (optional)"],
+    separateArchetypes: true,
+    sharedCardPool: { teamCap: 3, sharedSlots: 3 },
     sections: [
       {
         heading: "Teams",
