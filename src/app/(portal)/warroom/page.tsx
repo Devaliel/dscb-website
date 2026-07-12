@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import Star from "@/components/persona/star";
 import DeckChip from "@/components/deck-chip";
+import PlayerAvatar from "@/components/player-avatar";
 import { getBrowserSupabase, supabaseEnabled } from "@/lib/supabase";
 import { EMAIL_TO_HANDLE } from "@/lib/blog-db";
-import { getPlayer, getPlayers, getAllDecks, analyzeLineup } from "@/lib/data";
+import { getPlayer, getPlayers, getAllDecks, getDeck, analyzeLineup } from "@/lib/data";
+import { winRate } from "@/lib/utils";
 import {
   fetchMatches, fetchEntries, warroomReady, uploadDecklist, signedUrls,
   normalizeCardName, tallyCardUsage,
@@ -459,6 +461,27 @@ function MetaAnalyst({ entries, expected }: { entries: LineupEntryRow[]; expecte
   );
 }
 
+/* ── rule-booklet section list (shared by the match panel + Tournaments tab) ── */
+function BookletBody({ preset }: { preset: NonNullable<ReturnType<typeof getRulePreset>> }) {
+  return (
+    <>
+      {preset.sections.map((s) => (
+        <div key={s.heading}>
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-brand-300">{s.heading}</p>
+          <ul className="space-y-1">
+            {s.body.map((line, i) => (
+              <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-fog-300">
+                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-fog-600" aria-hidden />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </>
+  );
+}
+
 /* ── collapsible tournament-rules booklet ── */
 function RulesPanel({ slug }: { slug: string | null }) {
   const preset = getRulePreset(slug);
@@ -480,19 +503,7 @@ function RulesPanel({ slug }: { slug: string | null }) {
       {open && (
         <div className="space-y-4 border-t border-white/10 px-4 py-4">
           <p className="text-xs text-fog-500 sm:hidden">{preset.format}</p>
-          {preset.sections.map((s) => (
-            <div key={s.heading}>
-              <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-brand-300">{s.heading}</p>
-              <ul className="space-y-1">
-                {s.body.map((line, i) => (
-                  <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-fog-300">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-fog-600" aria-hidden />
-                    <span>{line}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <BookletBody preset={preset} />
         </div>
       )}
     </div>
@@ -571,7 +582,7 @@ function SealedLineup({
   );
 }
 
-/* ── one match card ── */
+/* ── one match card (accordion: compact summary row → full detail) ── */
 function MatchCard({
   match,
   entries,
@@ -580,6 +591,9 @@ function MatchCard({
   urls,
   onChange,
   onView,
+  expanded,
+  onToggle,
+  archive = false,
 }: {
   match: MatchRow;
   entries: LineupEntryRow[];
@@ -588,6 +602,9 @@ function MatchCard({
   urls: Record<string, string>;
   onChange: () => void;
   onView: (lb: Lightbox) => void;
+  expanded: boolean;
+  onToggle: () => void;
+  archive?: boolean;
 }) {
   const roster = useMemo(() => getPlayers().filter((p) => p.role !== "Try Out"), []);
   const myEntry = entries.find((e) => e.player_handle === handle);
@@ -632,11 +649,18 @@ function MatchCard({
   }
 
   return (
-    <div className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}>
+    <div
+      className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850"
+      style={{ boxShadow: `6px 6px 0 rgba(0,0,0,0.45), inset 3px 0 0 ${st.color}`, opacity: archive && !expanded ? 0.75 : 1 }}
+    >
       <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
 
-      {/* header */}
-      <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-6">
+      {/* summary row — always visible, toggles the detail */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`relative flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-4 text-left transition-colors hover:bg-white/[0.02] sm:px-6 ${expanded ? "border-b border-white/10" : ""}`}
+      >
         <div className="min-w-0">
           <h3 className="text-persona text-lg text-fog-100">
             vs {match.opponent_team}
@@ -648,14 +672,27 @@ function MatchCard({
             {match.status === "open" && <span className="ml-1 text-brand-300">· {relative(match.scheduled_at)}</span>}
           </p>
         </div>
-        <span
-          className="-skew-x-12 w-full px-3 py-1 text-center text-xs font-bold uppercase tracking-wide sm:w-auto"
-          style={{ background: `color-mix(in oklab, ${st.color} 82%, black)`, color: "white", boxShadow: "3px 3px 0 rgba(0,0,0,0.4)" }}
-        >
-          <span className="block skew-x-12">{st.label}</span>
+        <span className="flex shrink-0 items-center gap-2.5">
+          <span
+            className="-skew-x-12 px-3 py-1 text-xs font-bold uppercase tracking-wide"
+            style={{ background: `color-mix(in oklab, ${st.color} 82%, black)`, color: "white", boxShadow: "3px 3px 0 rgba(0,0,0,0.4)" }}
+          >
+            <span className="block skew-x-12">{st.label}</span>
+          </span>
+          <span className="text-xs text-fog-600">{expanded ? "▲" : "▼"}</span>
         </span>
-      </div>
+      </button>
 
+      {expanded && archive ? (
+        <div className="relative space-y-5 p-5 sm:p-6">
+          <SealedLineup entries={entries} urls={urls} onView={onView} />
+          {isCaptain && (
+            <button onClick={remove} className="-skew-x-12 border border-cyber-500/40 px-4 py-1.5 text-xs font-bold uppercase text-cyber-400 hover:bg-cyber-500/15">
+              <span className="block skew-x-12">Delete</span>
+            </button>
+          )}
+        </div>
+      ) : expanded ? (
       <div className="relative space-y-5 p-5 sm:p-6">
         {/* tournament rules */}
         <RulesPanel slug={match.rules_preset} />
@@ -816,6 +853,7 @@ function MatchCard({
           </div>
         )}
       </div>
+      ) : null}
     </div>
   );
 }
@@ -999,6 +1037,39 @@ function EditMatch({ match, onSaved }: { match: MatchRow; onSaved: () => void })
   );
 }
 
+/* ── portal identity header ── */
+function PortalIdentity({ handle, isCaptain, onLogout }: { handle: string; isCaptain: boolean; onLogout: () => void }) {
+  const player = getPlayer(handle);
+  if (!player) return null;
+  const deck = getDeck(player.mainDeckSlug);
+  const accent = deck?.accent ?? "var(--color-brand-400)";
+  const games = player.wins + player.losses;
+  return (
+    <div className="clip-corner relative flex items-center gap-4 overflow-hidden border border-white/10 bg-ink-850 px-4 py-3.5 sm:px-5" style={{ boxShadow: "5px 5px 0 rgba(0,0,0,0.45)" }}>
+      <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+      <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full blur-[50px]" style={{ background: `color-mix(in oklab, ${accent} 28%, transparent)` }} aria-hidden />
+      <div className="relative h-12 w-12 shrink-0">
+        <PlayerAvatar player={player} accent={accent} size="card" className="h-12 w-12" />
+      </div>
+      <div className="relative min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-persona text-lg text-fog-100">{player.name}</span>
+          <span className="-skew-x-12 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white" style={{ background: `color-mix(in oklab, ${accent} 75%, black)` }}>
+            <span className="block skew-x-12">{player.role}</span>
+          </span>
+          {isCaptain && <span className="text-[10px] uppercase tracking-wide text-brand-300">lineup manager</span>}
+        </div>
+        <p className="text-xs tabular-nums text-fog-500">
+          {player.wins}–{player.losses} career{games > 0 && <> · {winRate(player.wins, player.losses)}% WR</>}
+        </p>
+      </div>
+      <button onClick={onLogout} className="relative shrink-0 -skew-x-12 border border-white/15 bg-white/5 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-fog-300 hover:text-fog-100">
+        <span className="block skew-x-12">Log out</span>
+      </button>
+    </div>
+  );
+}
+
 /* ── page ── */
 export default function WarRoomPage() {
   const [session, setSession] = useState<Session | null>(null);
@@ -1012,6 +1083,8 @@ export default function WarRoomPage() {
   const [entries, setEntries] = useState<LineupEntryRow[]>([]);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [lightbox, setLightbox] = useState<Lightbox>(null);
+  const [tab, setTab] = useState<"matches" | "tournaments" | "history">("matches");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handle = useMemo(() => {
     const e = session?.user?.email?.toLowerCase();
@@ -1021,6 +1094,12 @@ export default function WarRoomPage() {
   // Darkzill (site dev) gets lineup-manager access regardless of in-game role —
   // Cain/Sieg accounts aren't accessible to them day-to-day.
   const isCaptain = player?.role === "Captain" || player?.role === "Vice Captain" || handle === "Darkzill";
+
+  const active = matches.filter((m) => m.status !== "done");
+  const done = matches.filter((m) => m.status === "done");
+  const missing = handle
+    ? active.filter((m) => m.status === "open" && !entries.some((e) => e.match_id === m.id && e.player_handle === handle))
+    : [];
 
   const load = useCallback(async () => {
     const ok = await warroomReady();
@@ -1083,37 +1162,119 @@ export default function WarRoomPage() {
         <p className="text-fog-500">Signed in as {session.user.email}, but this email isn&apos;t mapped to a team member yet.</p>
       ) : (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <p className="text-sm text-fog-500">
-              Signed in as <span className="text-fog-100">{player?.name ?? handle}</span>
-              {isCaptain && <span className="ml-2 text-brand-300">· lineup manager</span>}
-            </p>
-            <div className="flex items-center gap-3">
-              {isCaptain && <CreateMatch onCreated={load} />}
-              <button onClick={() => getBrowserSupabase().auth.signOut()} className="-skew-x-12 border border-white/15 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-wide text-fog-300 hover:text-fog-100">
-                <span className="block skew-x-12">Log out</span>
+          <PortalIdentity handle={handle} isCaptain={!!isCaptain} onLogout={() => getBrowserSupabase().auth.signOut()} />
+
+          {/* needs-your-deck alert */}
+          {missing.length > 0 && (
+            <button
+              type="button"
+              onClick={() => { setTab("matches"); setExpandedId(missing[0].id); }}
+              className="flex w-full flex-wrap items-center gap-2 border border-cyber-500/40 bg-cyber-500/10 px-4 py-3 text-left text-sm text-cyber-400 transition-colors hover:bg-cyber-500/15"
+            >
+              <Star className="h-3 w-3 shrink-0" />
+              <span className="font-bold uppercase tracking-wide">
+                {missing.length} open match{missing.length > 1 ? "es" : ""} missing your deck
+              </span>
+              <span className="ml-auto text-xs underline decoration-cyber-500/50 underline-offset-2">Submit now →</span>
+            </button>
+          )}
+
+          {/* tabs */}
+          <div className="flex flex-wrap gap-2">
+            {([
+              ["matches", "Matches", active.length],
+              ["tournaments", "Tournaments", Object.keys(RULE_PRESETS).length],
+              ["history", "History", done.length],
+            ] as const).map(([id, label, count]) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                className={`-skew-x-12 border px-4 py-2 text-xs font-bold uppercase tracking-wide transition-colors ${
+                  tab === id ? "border-brand-400 bg-brand-500 text-white" : "border-white/15 bg-white/5 text-fog-400 hover:text-fog-100"
+                }`}
+                style={tab === id ? { boxShadow: "3px 3px 0 rgba(0,0,0,0.4)" } : undefined}
+              >
+                <span className="block skew-x-12">
+                  {label} <span className={tab === id ? "text-white/70" : "text-fog-600"}>({count})</span>
+                </span>
               </button>
-            </div>
+            ))}
           </div>
 
-          {matches.length === 0 ? (
-            <p className="text-fog-500">No upcoming matches yet.{isCaptain ? " Create one above." : " Check back soon."}</p>
-          ) : (
-            <div className="space-y-5">
-              {matches.map((m) => (
-                <MatchCard
-                  key={m.id}
-                  match={m}
-                  entries={entries.filter((e) => e.match_id === m.id)}
-                  handle={handle}
-                  isCaptain={!!isCaptain}
-                  urls={urls}
-                  onChange={load}
-                  onView={setLightbox}
-                />
-              ))}
+          {tab === "matches" && (
+            <div className="space-y-4">
+              {isCaptain && <CreateMatch onCreated={load} />}
+              {active.length === 0 ? (
+                <p className="text-fog-500">No upcoming matches yet.{isCaptain ? " Create one above." : " Check back soon."}</p>
+              ) : (
+                active.map((m) => (
+                  <MatchCard
+                    key={m.id}
+                    match={m}
+                    entries={entries.filter((e) => e.match_id === m.id)}
+                    handle={handle}
+                    isCaptain={!!isCaptain}
+                    urls={urls}
+                    onChange={load}
+                    onView={setLightbox}
+                    expanded={expandedId === m.id}
+                    onToggle={() => setExpandedId((id) => (id === m.id ? null : m.id))}
+                  />
+                ))
+              )}
             </div>
           )}
+
+          {tab === "tournaments" && (
+            <div className="space-y-4">
+              {Object.values(RULE_PRESETS).map((p) => (
+                <div key={p.slug} className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}>
+                  <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+                  <div className="relative border-b border-white/10 px-5 py-4 sm:px-6">
+                    <h3 className="text-persona text-xl text-fog-100">{p.name}</h3>
+                    <p className="mt-1 text-xs text-fog-500">{p.format}</p>
+                    <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] uppercase tracking-wide">
+                      <span className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-fog-400">
+                        {p.deckSlots[0].replace(" *", "")} + {p.deckSlots[1].replace(" (optional)", "")}
+                      </span>
+                      {p.sharedCardPool && (
+                        <span className="rounded-full border border-brand-400/30 bg-brand-500/10 px-2 py-0.5 text-brand-300">
+                          {p.sharedCardPool.teamCap}-copy team cap · {p.sharedCardPool.sharedSlots} shared cards
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="relative space-y-4 px-5 py-4 sm:px-6">
+                    <BookletBody preset={p} />
+                  </div>
+                </div>
+              ))}
+              <p className="text-xs text-fog-600">New tournaments are added by the dev — ping Darkzill.</p>
+            </div>
+          )}
+
+          {tab === "history" &&
+            (done.length === 0 ? (
+              <p className="text-fog-500">No finished matches yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {done.map((m) => (
+                  <MatchCard
+                    key={m.id}
+                    match={m}
+                    entries={entries.filter((e) => e.match_id === m.id)}
+                    handle={handle}
+                    isCaptain={!!isCaptain}
+                    urls={urls}
+                    onChange={load}
+                    onView={setLightbox}
+                    expanded={expandedId === m.id}
+                    onToggle={() => setExpandedId((id) => (id === m.id ? null : m.id))}
+                    archive
+                  />
+                ))}
+              </div>
+            ))}
         </div>
       )}
 
@@ -1146,7 +1307,7 @@ export default function WarRoomPage() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative overflow-hidden px-6 pb-24 pt-36 sm:pt-44">
+    <div className="relative overflow-hidden px-6 pb-24 pt-10 sm:pt-14">
       <div className="pointer-events-none absolute inset-x-0 top-16 -z-10 mx-auto h-64 max-w-3xl rounded-full bg-brand-500/15 blur-[110px]" />
       <div className="mx-auto max-w-5xl">
         <span className="inline-block -skew-x-12 bg-cyber-500 px-3 py-1">
