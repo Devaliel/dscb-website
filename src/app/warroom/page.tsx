@@ -65,27 +65,25 @@ function ImageSlot({
   return (
     <div>
       <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">{label}</label>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => (url && onView ? onView() : ref.current?.click())}
-          disabled={disabled}
-          className="grid h-24 w-36 shrink-0 place-items-center overflow-hidden border border-white/15 bg-ink-900 text-[11px] text-fog-600 transition-colors hover:border-brand-400/60"
-        >
-          {url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={url} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <span>{uploading ? "Uploading…" : "+ Upload"}</span>
-          )}
-        </button>
-        <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onFile(f); }} />
-        {!disabled && (
-          <button type="button" onClick={() => ref.current?.click()} className="text-[11px] text-fog-500 hover:text-brand-300">
-            {url ? "Replace" : uploading ? "…" : "Choose"}
-          </button>
+      <button
+        type="button"
+        onClick={() => (url && onView ? onView() : ref.current?.click())}
+        disabled={disabled}
+        className="grid aspect-[4/3] w-full place-items-center overflow-hidden border border-white/15 bg-ink-900 text-[11px] text-fog-600 transition-colors hover:border-brand-400/60"
+      >
+        {url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span>{uploading ? "Uploading…" : "+ Upload"}</span>
         )}
-      </div>
+      </button>
+      <input ref={ref} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) onFile(f); }} />
+      {!disabled && (
+        <button type="button" onClick={() => ref.current?.click()} className="mt-1 text-[11px] text-fog-500 hover:text-brand-300">
+          {url ? "Replace" : uploading ? "…" : "Choose"}
+        </button>
+      )}
     </div>
   );
 }
@@ -192,31 +190,33 @@ function KeyCardsEditor({
           })}
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="space-y-2">
         <input
-          className={inputCls + " min-w-[140px] flex-1"}
+          className={inputCls}
           placeholder="Card name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
         />
-        <input
-          className={inputCls + " w-16"}
-          type="number"
-          min={1}
-          max={3}
-          value={count}
-          onChange={(e) => setCount(Math.max(1, Math.min(3, Number(e.target.value) || 1)))}
-        />
-        {separateArchetypes && (
-          <select className={inputCls + " w-24"} value={deck} onChange={(e) => setDeck(Number(e.target.value) as 1 | 2)}>
-            <option value={1}>Deck 1</option>
-            <option value={2}>Deck 2</option>
-          </select>
-        )}
-        <button type="button" onClick={add} className="-skew-x-12 border border-brand-400/50 bg-brand-500/15 px-4 py-2 text-xs font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30">
-          <span className="block skew-x-12">Add</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            className={inputCls + " w-16"}
+            type="number"
+            min={1}
+            max={3}
+            value={count}
+            onChange={(e) => setCount(Math.max(1, Math.min(3, Number(e.target.value) || 1)))}
+          />
+          {separateArchetypes && (
+            <select className={inputCls + " w-24"} value={deck} onChange={(e) => setDeck(Number(e.target.value) as 1 | 2)}>
+              <option value={1}>Deck 1</option>
+              <option value={2}>Deck 2</option>
+            </select>
+          )}
+          <button type="button" onClick={add} className="ml-auto -skew-x-12 border border-brand-400/50 bg-brand-500/15 px-4 py-2 text-xs font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30">
+            <span className="block skew-x-12">Add</span>
+          </button>
+        </div>
       </div>
       <p className="mt-1 text-[10px] text-fog-600">Limited = 1 copy, Semi-Limited = 2 — set the count yourself, it isn&apos;t checked automatically.</p>
     </div>
@@ -384,7 +384,7 @@ function MySubmission({
         </div>
       )}
 
-      <div className="flex flex-wrap gap-5">
+      <div className="grid grid-cols-2 gap-3">
         <ImageSlot label={mainLabel} url={mainUrl} uploading={upMain} onFile={(f) => pick(f, "main")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
         <ImageSlot label={sideLabel} url={sideUrl} uploading={upSide} onFile={(f) => pick(f, "side")} onView={() => onView({ main: mainUrl, side: sideUrl })} />
       </div>
@@ -649,7 +649,7 @@ function MatchCard({
           </p>
         </div>
         <span
-          className="-skew-x-12 px-3 py-1 text-xs font-bold uppercase tracking-wide"
+          className="-skew-x-12 w-full px-3 py-1 text-center text-xs font-bold uppercase tracking-wide sm:w-auto"
           style={{ background: `color-mix(in oklab, ${st.color} 82%, black)`, color: "white", boxShadow: "3px 3px 0 rgba(0,0,0,0.4)" }}
         >
           <span className="block skew-x-12">{st.label}</span>
@@ -682,42 +682,50 @@ function MatchCard({
                   return (
                     <div
                       key={p.handle}
-                      className="flex items-center gap-2.5 rounded-lg border px-3 py-2"
+                      className="flex flex-col gap-1.5 rounded-lg border px-3 py-2.5"
                       style={{
                         opacity: e ? 1 : 0.55,
                         borderColor: active ? "var(--color-brand-400)" : "rgba(255,255,255,0.05)",
                         background: active ? "color-mix(in oklab, var(--color-brand-500) 8%, transparent)" : "rgba(255,255,255,0.02)",
                       }}
                     >
-                      <span className="w-16 shrink-0 truncate text-sm text-fog-200">{p.name}</span>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm text-fog-200">{p.name}</span>
+                        {e?.lineup_role === "sub" && <span className="shrink-0 text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
+                      </div>
+
                       {e ? (
-                        <>
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
                           {e.deck2_name && <span className="text-[10px] uppercase tracking-wide text-brand-300">+{e.deck2_name}</span>}
                           {e.side_image && <span className="text-[10px] uppercase tracking-wide text-brand-300">+side</span>}
                           {e.key_cards && e.key_cards.length > 0 && <span className="text-[10px] uppercase tracking-wide text-gold-500">{e.key_cards.length} key</span>}
-                          {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
+                        </div>
+                      ) : (
+                        <span className="text-xs italic text-fog-600">— no pick yet —</span>
+                      )}
+
+                      {(mainUrl || isCaptain) && (
+                        <div className="flex justify-end gap-2">
                           {mainUrl && (
                             <button
                               type="button"
                               onClick={() => onView({ main: mainUrl, side: sideUrl })}
-                              className="shrink-0 -skew-x-12 border border-brand-400/50 bg-brand-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30"
+                              className="-skew-x-12 border border-brand-400/50 bg-brand-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30"
                             >
                               <span className="block skew-x-12">List</span>
                             </button>
                           )}
-                        </>
-                      ) : (
-                        <span className="text-xs italic text-fog-600">— no pick yet —</span>
-                      )}
-                      {isCaptain && (
-                        <button
-                          type="button"
-                          onClick={() => setProxyHandle((h) => (h === p.handle ? null : p.handle))}
-                          className="ml-auto shrink-0 text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:text-brand-200"
-                        >
-                          {active ? "Close" : e ? "Edit" : "+ Add"}
-                        </button>
+                          {isCaptain && (
+                            <button
+                              type="button"
+                              onClick={() => setProxyHandle((h) => (h === p.handle ? null : p.handle))}
+                              className="text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:text-brand-200"
+                            >
+                              {active ? "Close" : e ? "Edit" : "+ Add"}
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
                   );
