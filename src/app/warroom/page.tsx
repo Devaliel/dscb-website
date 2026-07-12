@@ -331,16 +331,13 @@ function MySubmission({
           Lineup is {match.status}.
         </p>
         {(mainUrl || sideUrl) && (
-          <div className="flex gap-2">
-            {mainUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={mainUrl} alt="main deck" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-20 w-32 cursor-pointer border border-white/10 object-cover" />
-            )}
-            {sideUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={sideUrl} alt="side deck" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-20 w-32 cursor-pointer border border-white/10 object-cover" />
-            )}
-          </div>
+          <button
+            type="button"
+            onClick={() => onView({ main: mainUrl, side: sideUrl })}
+            className="-skew-x-12 border border-brand-400/50 bg-brand-500/15 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30"
+          >
+            <span className="block skew-x-12">View decklist</span>
+          </button>
         )}
       </div>
     );
@@ -541,18 +538,8 @@ function SealedLineup({
                 <span className="font-display text-sm font-bold uppercase italic tracking-wide text-fog-100">{p.name}</span>
                 {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
               </div>
-              <div className="flex items-center gap-2.5">
-                {mainUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mainUrl} alt="" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-14 w-20 shrink-0 cursor-pointer border border-white/10 object-cover" />
-                ) : (
-                  <div className="grid h-14 w-20 shrink-0 place-items-center border border-white/10 text-[10px] text-fog-600">no image</div>
-                )}
-                {sideUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={sideUrl} alt="" onClick={() => onView({ main: mainUrl, side: sideUrl })} className="h-14 w-20 shrink-0 cursor-pointer border border-white/10 object-cover" />
-                )}
-                <div className="min-w-0">
+              <div className="flex items-start gap-2.5">
+                <div className="min-w-0 flex-1">
                   <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
                   {e.deck2_name && <div className="mt-1"><DeckChip deckSlug={e.deck2_slug ?? undefined} name={e.deck2_name} size="sm" /></div>}
                   {e.tech_note && <p className="mt-1 truncate text-[11px] text-fog-500">{e.tech_note}</p>}
@@ -566,6 +553,15 @@ function SealedLineup({
                     </p>
                   )}
                 </div>
+                {mainUrl && (
+                  <button
+                    type="button"
+                    onClick={() => onView({ main: mainUrl, side: sideUrl })}
+                    className="shrink-0 -skew-x-12 border border-brand-400/50 bg-brand-500/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30"
+                  >
+                    <span className="block skew-x-12">List</span>
+                  </button>
+                )}
               </div>
             </div>
           );
@@ -696,20 +692,20 @@ function MatchCard({
                       <span className="w-16 shrink-0 truncate text-sm text-fog-200">{p.name}</span>
                       {e ? (
                         <>
-                          {mainUrl && (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={mainUrl}
-                              alt=""
-                              onClick={() => onView({ main: mainUrl, side: sideUrl })}
-                              className="h-9 w-14 shrink-0 cursor-pointer border border-white/10 object-cover"
-                            />
-                          )}
                           <DeckChip deckSlug={e.deck_slug ?? undefined} name={e.deck_name} size="sm" />
                           {e.deck2_name && <span className="text-[10px] uppercase tracking-wide text-brand-300">+{e.deck2_name}</span>}
                           {e.side_image && <span className="text-[10px] uppercase tracking-wide text-brand-300">+side</span>}
                           {e.key_cards && e.key_cards.length > 0 && <span className="text-[10px] uppercase tracking-wide text-gold-500">{e.key_cards.length} key</span>}
                           {e.lineup_role === "sub" && <span className="text-[10px] uppercase tracking-wide text-fog-600">sub</span>}
+                          {mainUrl && (
+                            <button
+                              type="button"
+                              onClick={() => onView({ main: mainUrl, side: sideUrl })}
+                              className="shrink-0 -skew-x-12 border border-brand-400/50 bg-brand-500/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30"
+                            >
+                              <span className="block skew-x-12">List</span>
+                            </button>
+                          )}
                         </>
                       ) : (
                         <span className="text-xs italic text-fog-600">— no pick yet —</span>
