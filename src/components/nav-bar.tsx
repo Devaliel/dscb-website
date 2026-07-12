@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -105,18 +106,24 @@ export default function NavBar() {
 
         <div className="hidden md:block">
           <Magnetic>
-            <TransitionLink
-              href="/decks"
-              className="p-hover-flicker inline-block -skew-x-12 px-5 py-2.5 transition-transform duration-150 hover:-translate-y-0.5"
+            {/* plain Link — the wipe provider lives in the (site) layout and unmounts when leaving it */}
+            <Link
+              href="/warroom"
+              className="p-hover-flicker inline-block -skew-x-12 px-5 py-2 transition-transform duration-150 hover:-translate-y-0.5"
               style={{
                 background: "linear-gradient(135deg, var(--color-brand-500), var(--color-flare-500))",
                 boxShadow: "4px 4px 0 rgba(0,0,0,0.5)",
               }}
             >
-              <span className="block skew-x-12 font-display text-sm font-extrabold uppercase italic tracking-wide text-white">
-                Team Decks
+              <span className="block skew-x-12 text-center">
+                <span className="block font-display text-sm font-extrabold uppercase italic tracking-wide text-white">
+                  War Room
+                </span>
+                <span className="-mt-0.5 block text-[8px] font-bold uppercase tracking-[0.28em] text-white/70">
+                  Members only
+                </span>
               </span>
-            </TransitionLink>
+            </Link>
           </Magnetic>
         </div>
 
@@ -145,6 +152,15 @@ export default function NavBar() {
               {l.label}
             </TransitionLink>
           ))}
+          <Link
+            href="/warroom"
+            className="relative flex items-center gap-2 px-4 py-3 font-display text-sm font-bold uppercase italic tracking-wide text-brand-300 hover:bg-white/5 hover:text-brand-200"
+          >
+            War Room
+            <span className="not-italic rounded-full border border-brand-400/40 bg-brand-500/15 px-2 py-0.5 text-[9px] tracking-[0.18em]">
+              Members only
+            </span>
+          </Link>
         </div>
       )}
     </header>

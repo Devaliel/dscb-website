@@ -42,7 +42,7 @@ export default function Footer() {
           <p>© {new Date().getFullYear()} DSCB. Card data & art via YGOPRODeck. Fan project, not affiliated with Konami.</p>
           <VisitorCounter />
           <p className="flex items-center gap-3">
-            <a href="/admin" className="text-fog-600 transition-colors hover:text-fog-300">
+            <a href="/warroom" className="text-fog-600 transition-colors hover:text-fog-300">
               Team Login
             </a>
             <span aria-hidden className="text-fog-700">·</span>

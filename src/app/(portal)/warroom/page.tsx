@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 import Star from "@/components/persona/star";
 import DeckChip from "@/components/deck-chip";
 import PlayerAvatar from "@/components/player-avatar";
+import BlogEditor from "@/components/blog-editor";
 import { getBrowserSupabase, supabaseEnabled } from "@/lib/supabase";
 import { EMAIL_TO_HANDLE } from "@/lib/blog-db";
 import { getPlayer, getPlayers, getAllDecks, getDeck, analyzeLineup } from "@/lib/data";
@@ -1062,6 +1064,11 @@ function PortalIdentity({ handle, isCaptain, onLogout }: { handle: string; isCap
         <p className="text-xs tabular-nums text-fog-500">
           {player.wins}–{player.losses} career{games > 0 && <> · {winRate(player.wins, player.losses)}% WR</>}
         </p>
+        <p className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px]">
+          <Link href={`/players/${player.handle}`} className="text-fog-500 underline decoration-white/15 underline-offset-2 hover:text-brand-300">My page</Link>
+          <Link href={`/decks/${player.mainDeckSlug}`} className="text-fog-500 underline decoration-white/15 underline-offset-2 hover:text-brand-300">My deck</Link>
+          <Link href="/guestbook" className="text-fog-500 underline decoration-white/15 underline-offset-2 hover:text-brand-300">Guestbook</Link>
+        </p>
       </div>
       <button onClick={onLogout} className="relative shrink-0 -skew-x-12 border border-white/15 bg-white/5 px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wide text-fog-300 hover:text-fog-100">
         <span className="block skew-x-12">Log out</span>
@@ -1083,7 +1090,7 @@ export default function WarRoomPage() {
   const [entries, setEntries] = useState<LineupEntryRow[]>([]);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [lightbox, setLightbox] = useState<Lightbox>(null);
-  const [tab, setTab] = useState<"matches" | "tournaments" | "history">("matches");
+  const [tab, setTab] = useState<"matches" | "tournaments" | "blog" | "history">("matches");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handle = useMemo(() => {
@@ -1184,6 +1191,7 @@ export default function WarRoomPage() {
             {([
               ["matches", "Matches", active.length],
               ["tournaments", "Tournaments", Object.keys(RULE_PRESETS).length],
+              ["blog", "Blog", null],
               ["history", "History", done.length],
             ] as const).map(([id, label, count]) => (
               <button
@@ -1195,7 +1203,7 @@ export default function WarRoomPage() {
                 style={tab === id ? { boxShadow: "3px 3px 0 rgba(0,0,0,0.4)" } : undefined}
               >
                 <span className="block skew-x-12">
-                  {label} <span className={tab === id ? "text-white/70" : "text-fog-600"}>({count})</span>
+                  {label}{count !== null && <> <span className={tab === id ? "text-white/70" : "text-fog-600"}>({count})</span></>}
                 </span>
               </button>
             ))}
@@ -1252,6 +1260,8 @@ export default function WarRoomPage() {
               <p className="text-xs text-fog-600">New tournaments are added by the dev — ping Darkzill.</p>
             </div>
           )}
+
+          {tab === "blog" && <BlogEditor authorHandle={handle} />}
 
           {tab === "history" &&
             (done.length === 0 ? (
@@ -1318,7 +1328,7 @@ function Shell({ children }: { children: React.ReactNode }) {
         </span>
         <h1 className="text-persona mt-4 -rotate-1 text-5xl text-fog-100 sm:text-6xl">War Room</h1>
         <div className="mt-3 h-2 w-36 -skew-x-12" style={{ background: "linear-gradient(90deg, var(--color-cyber-500), var(--color-brand-500) 70%, transparent)" }} />
-        <p className="mt-4 max-w-xl text-sm text-fog-500">Submit your deck for upcoming matches. Picks stay team-private — the public only sees the countdown.</p>
+        <p className="mt-4 max-w-xl text-sm text-fog-500">Submit decks, plan matches, post to the blog — the team&apos;s internal panel. Picks stay team-private; the public only sees the countdown.</p>
         <div className="mt-10">{children}</div>
       </div>
     </div>
