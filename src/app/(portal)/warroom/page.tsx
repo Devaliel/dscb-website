@@ -1056,6 +1056,25 @@ function GamePip({ result }: { result: ScrimGame["result"] }) {
   );
 }
 
+/* ── one scrim game line: pip + player + deck vs opponent (member or free text) ── */
+function GameLine({ g, link = false }: { g: ScrimGame; link?: boolean }) {
+  return (
+    <>
+      <GamePip result={g.result} />
+      <span className="text-fog-200">{getPlayer(g.player)?.name ?? g.player}</span>
+      <DeckChip deckSlug={g.deckSlug ?? undefined} name={g.deckName} size="sm" link={link} />
+      {(g.oppPlayer || g.oppDeck) && <span className="text-fog-600">vs</span>}
+      {g.oppPlayer && <span className="text-fog-200">{getPlayer(g.oppPlayer)?.name ?? g.oppPlayer}</span>}
+      {g.oppDeck &&
+        (g.oppPlayer ? (
+          <DeckChip deckSlug={g.oppDeckSlug ?? undefined} name={g.oppDeck} size="sm" link={link} />
+        ) : (
+          <span className="text-fog-500">{g.oppDeck}</span>
+        ))}
+    </>
+  );
+}
+
 /* ── scrim create/edit form (any member; games logged row by row) ── */
 function ScrimForm({
   handle,
@@ -1069,7 +1088,8 @@ function ScrimForm({
   onCancel: () => void;
 }) {
   const decks = useMemo(() => getAllDecks(), []);
-  const roster = useMemo(() => getPlayers().filter((p) => p.role !== "Try Out"), []);
+  // full roster including Try Outs — scrims are exactly where trial players prove themselves
+  const roster = useMemo(() => getPlayers(), []);
   const [opponent, setOpponent] = useState(existing?.opponent_team ?? "");
   const [when, setWhen] = useState(() => toLocalInput(existing?.played_at ?? new Date().toISOString()));
   const [format, setFormat] = useState(existing?.format ?? "");
@@ -1082,18 +1102,24 @@ function ScrimForm({
   const [gPlayer, setGPlayer] = useState(handle);
   const [gSlug, setGSlug] = useState("");
   const [gCustom, setGCustom] = useState("");
-  const [gOpp, setGOpp] = useState("");
+  const [gOppPlayer, setGOppPlayer] = useState(""); // "" = external opponent
+  const [gOppSlug, setGOppSlug] = useState(""); // "" = unknown/skip
+  const [gOppCustom, setGOppCustom] = useState("");
   const [gResult, setGResult] = useState<ScrimGame["result"]>("win");
 
   function addGame() {
     const deckName = gSlug === CUSTOM ? gCustom.trim() : decks.find((d) => d.slug === gSlug)?.name ?? "";
     if (!deckName) { setMsg("Pick the deck that was played."); return; }
+    if (gOppPlayer && gOppPlayer === gPlayer) { setMsg("A player can't scrim themselves."); return; }
+    const oppDeck = gOppSlug === CUSTOM ? gOppCustom.trim() : decks.find((d) => d.slug === gOppSlug)?.name ?? "";
     setMsg(null);
     setGames([...games, {
       player: gPlayer,
       deckSlug: gSlug === CUSTOM ? null : gSlug,
       deckName,
-      oppDeck: gOpp.trim(),
+      oppDeck,
+      oppPlayer: gOppPlayer || null,
+      oppDeckSlug: oppDeck && gOppSlug !== CUSTOM ? gOppSlug : null,
       result: gResult,
     }]);
   }
@@ -1138,10 +1164,7 @@ function ScrimForm({
           <div className="mb-2 space-y-1.5">
             {games.map((g, i) => (
               <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 text-xs">
-                <GamePip result={g.result} />
-                <span className="text-fog-200">{getPlayer(g.player)?.name ?? g.player}</span>
-                <DeckChip deckSlug={g.deckSlug ?? undefined} name={g.deckName} size="sm" link={false} />
-                {g.oppDeck && <span className="text-fog-500">vs {g.oppDeck}</span>}
+                <GameLine g={g} />
                 <button type="button" onClick={() => setGames(games.filter((_, idx) => idx !== i))} className="ml-auto text-fog-500 hover:text-cyber-400">×</button>
               </div>
             ))}
@@ -1165,14 +1188,25 @@ function ScrimForm({
               <input className={inputCls + " mt-2"} placeholder="Archetype name" value={gCustom} onChange={(e) => setGCustom(e.target.value)} />
             )}
           </div>
-          <input
-            className={inputCls}
-            placeholder="Opponent's deck (optional)"
-            value={gOpp}
-            onChange={(e) => setGOpp(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGame(); } }}
-          />
-          <div className="flex gap-2">
+          <select className={inputCls} value={gOppPlayer} onChange={(e) => setGOppPlayer(e.target.value)}>
+            <option value="">vs external opponent…</option>
+            {roster.filter((p) => p.handle !== gPlayer).map((p) => (
+              <option key={p.handle} value={p.handle}>vs {p.name} (internal)</option>
+            ))}
+          </select>
+          <div className="min-w-0">
+            <select className={inputCls} value={gOppSlug} onChange={(e) => setGOppSlug(e.target.value)}>
+              <option value="">Opponent&apos;s deck… (optional)</option>
+              {decks.map((d) => (
+                <option key={d.slug} value={d.slug}>{d.name}</option>
+              ))}
+              <option value={CUSTOM}>Custom / off-meta…</option>
+            </select>
+            {gOppSlug === CUSTOM && (
+              <input className={inputCls + " mt-2"} placeholder="Archetype name" value={gOppCustom} onChange={(e) => setGOppCustom(e.target.value)} />
+            )}
+          </div>
+          <div className="flex gap-2 sm:col-span-2">
             {(["win", "loss"] as const).map((r) => (
               <button
                 key={r}
@@ -1298,10 +1332,7 @@ function ScrimCard({
               <div className="space-y-1.5">
                 {games.map((g, i) => (
                   <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-xs">
-                    <GamePip result={g.result} />
-                    <span className="text-fog-200">{getPlayer(g.player)?.name ?? g.player}</span>
-                    <DeckChip deckSlug={g.deckSlug ?? undefined} name={g.deckName} size="sm" />
-                    {g.oppDeck && <span className="text-fog-500">vs {g.oppDeck}</span>}
+                    <GameLine g={g} link />
                   </div>
                 ))}
               </div>

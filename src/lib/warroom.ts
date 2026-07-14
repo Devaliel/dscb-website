@@ -160,8 +160,10 @@ export interface ScrimGame {
   player: string; // our player's handle
   deckSlug: string | null; // null for custom/off-meta archetypes
   deckName: string;
-  oppDeck: string; // opponent's archetype, free text
-  result: "win" | "loss";
+  oppDeck: string; // opponent's archetype (display name)
+  oppPlayer?: string | null; // opponent's handle when they're also a team member (internal scrim)
+  oppDeckSlug?: string | null; // catalog slug for the opponent's deck, when known
+  result: "win" | "loss"; // from `player`'s perspective
 }
 
 /** A practice session vs another team. Team-only (no anon read policy). */
@@ -215,6 +217,7 @@ export function scrimStats(scrims: ScrimRow[]): {
     if (result === "win") rec.wins += 1;
     else rec.losses += 1;
   };
+  const flip = (r: ScrimGame["result"]): ScrimGame["result"] => (r === "win" ? "loss" : "win");
   for (const s of scrims) {
     for (const g of s.games ?? []) {
       const deckKey = g.deckSlug ?? normalizeCardName(g.deckName);
@@ -228,6 +231,25 @@ export function scrimStats(scrims: ScrimRow[]): {
       if (oppKey) {
         if (!vsArchetype[oppKey]) vsArchetype[oppKey] = { display: g.oppDeck.trim(), wins: 0, losses: 0 };
         bump(vsArchetype[oppKey], g.result);
+      }
+
+      // internal scrim: the opponent is a team member too — credit their side of the
+      // same game (inverse result) so one row yields both players' stats, no mirror rows
+      if (g.oppPlayer) {
+        if (!perPlayer[g.oppPlayer]) perPlayer[g.oppPlayer] = { display: g.oppPlayer, wins: 0, losses: 0 };
+        bump(perPlayer[g.oppPlayer], flip(g.result));
+
+        if (oppKey) {
+          const oppDeckKey = g.oppDeckSlug ?? oppKey;
+          if (!perDeck[oppDeckKey]) perDeck[oppDeckKey] = { display: g.oppDeck.trim(), deckSlug: g.oppDeckSlug ?? null, wins: 0, losses: 0 };
+          bump(perDeck[oppDeckKey], flip(g.result));
+        }
+
+        const ourKey = normalizeCardName(g.deckName);
+        if (ourKey) {
+          if (!vsArchetype[ourKey]) vsArchetype[ourKey] = { display: g.deckName.trim(), wins: 0, losses: 0 };
+          bump(vsArchetype[ourKey], flip(g.result));
+        }
       }
     }
   }
