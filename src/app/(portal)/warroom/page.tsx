@@ -12,9 +12,9 @@ import { EMAIL_TO_HANDLE } from "@/lib/blog-db";
 import { getPlayer, getPlayers, getAllDecks, getDeck, analyzeLineup } from "@/lib/data";
 import { winRate } from "@/lib/utils";
 import {
-  fetchMatches, fetchEntries, warroomReady, uploadDecklist, signedUrls,
-  normalizeCardName, tallyCardUsage,
-  type MatchRow, type LineupEntryRow, type KeyCard,
+  fetchMatches, fetchEntries, fetchScrims, warroomReady, uploadDecklist, signedUrls,
+  normalizeCardName, tallyCardUsage, scrimStats,
+  type MatchRow, type LineupEntryRow, type KeyCard, type ScrimRow, type ScrimGame, type ScrimRecord,
 } from "@/lib/warroom";
 import { getRulePreset, RULE_PRESETS } from "@/lib/tournament-rules";
 
@@ -42,6 +42,10 @@ function toLocalInput(iso: string): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+
+// scrim win/loss colors — same pair the relay-match pips use
+const WIN = "var(--color-brand-400)";
+const LOSS = "var(--color-cyber-500)";
 
 const STATUS_STYLE: Record<MatchRow["status"], { label: string; color: string }> = {
   open: { label: "Open", color: "var(--color-brand-400)" },
@@ -1039,6 +1043,343 @@ function EditMatch({ match, onSaved }: { match: MatchRow; onSaved: () => void })
   );
 }
 
+/* ── scrim game W/L pip (echoes the relay-match pip) ── */
+function GamePip({ result }: { result: ScrimGame["result"] }) {
+  const won = result === "win";
+  return (
+    <span
+      className="grid h-5 w-5 shrink-0 -skew-x-12 place-items-center text-[10px] font-black text-white"
+      style={{ background: won ? WIN : LOSS }}
+    >
+      <span className="block skew-x-12">{won ? "W" : "L"}</span>
+    </span>
+  );
+}
+
+/* ── scrim create/edit form (any member; games logged row by row) ── */
+function ScrimForm({
+  handle,
+  existing,
+  onSaved,
+  onCancel,
+}: {
+  handle: string;
+  existing?: ScrimRow;
+  onSaved: () => void;
+  onCancel: () => void;
+}) {
+  const decks = useMemo(() => getAllDecks(), []);
+  const roster = useMemo(() => getPlayers().filter((p) => p.role !== "Try Out"), []);
+  const [opponent, setOpponent] = useState(existing?.opponent_team ?? "");
+  const [when, setWhen] = useState(() => toLocalInput(existing?.played_at ?? new Date().toISOString()));
+  const [format, setFormat] = useState(existing?.format ?? "");
+  const [notes, setNotes] = useState(existing?.notes ?? "");
+  const [games, setGames] = useState<ScrimGame[]>(existing?.games ?? []);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  // draft game row — player/deck/opponent persist after Add for fast repeat logging
+  const [gPlayer, setGPlayer] = useState(handle);
+  const [gSlug, setGSlug] = useState("");
+  const [gCustom, setGCustom] = useState("");
+  const [gOpp, setGOpp] = useState("");
+  const [gResult, setGResult] = useState<ScrimGame["result"]>("win");
+
+  function addGame() {
+    const deckName = gSlug === CUSTOM ? gCustom.trim() : decks.find((d) => d.slug === gSlug)?.name ?? "";
+    if (!deckName) { setMsg("Pick the deck that was played."); return; }
+    setMsg(null);
+    setGames([...games, {
+      player: gPlayer,
+      deckSlug: gSlug === CUSTOM ? null : gSlug,
+      deckName,
+      oppDeck: gOpp.trim(),
+      result: gResult,
+    }]);
+  }
+
+  async function save() {
+    if (!opponent.trim() || !when) { setMsg("Opponent and date/time are required."); return; }
+    if (games.length === 0) { setMsg("Log at least one game."); return; }
+    setBusy(true);
+    setMsg(null);
+    const row = {
+      opponent_team: opponent.trim(),
+      played_at: new Date(when).toISOString(),
+      format: format.trim(),
+      notes: notes.trim() || null,
+      games,
+    };
+    const sb = getBrowserSupabase();
+    const { error } = existing
+      ? await sb.from("scrims").update(row).eq("id", existing.id)
+      : await sb.from("scrims").insert({ ...row, logged_by: handle });
+    setBusy(false);
+    if (error) setMsg(error.message);
+    else onSaved();
+  }
+
+  const wins = games.filter((g) => g.result === "win").length;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input className={inputCls} placeholder="Opponent team *" value={opponent} onChange={(e) => setOpponent(e.target.value)} />
+        <input className={inputCls} type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+        <input className={inputCls} placeholder="Format (optional — e.g. BO1 grind, relay practice)" value={format} onChange={(e) => setFormat(e.target.value)} />
+        <input className={inputCls} placeholder="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-fog-600">
+          Games <span className="normal-case text-fog-600">— {games.length} logged{games.length > 0 && <> · {wins}–{games.length - wins}</>}</span>
+        </label>
+        {games.length > 0 && (
+          <div className="mb-2 space-y-1.5">
+            {games.map((g, i) => (
+              <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 text-xs">
+                <GamePip result={g.result} />
+                <span className="text-fog-200">{getPlayer(g.player)?.name ?? g.player}</span>
+                <DeckChip deckSlug={g.deckSlug ?? undefined} name={g.deckName} size="sm" link={false} />
+                {g.oppDeck && <span className="text-fog-500">vs {g.oppDeck}</span>}
+                <button type="button" onClick={() => setGames(games.filter((_, idx) => idx !== i))} className="ml-auto text-fog-500 hover:text-cyber-400">×</button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="grid gap-2 sm:grid-cols-2">
+          <select className={inputCls} value={gPlayer} onChange={(e) => setGPlayer(e.target.value)}>
+            {roster.map((p) => (
+              <option key={p.handle} value={p.handle}>{p.name}</option>
+            ))}
+          </select>
+          <div className="min-w-0">
+            <select className={inputCls} value={gSlug} onChange={(e) => setGSlug(e.target.value)}>
+              <option value="">Our deck…</option>
+              {decks.map((d) => (
+                <option key={d.slug} value={d.slug}>{d.name}</option>
+              ))}
+              <option value={CUSTOM}>Custom / off-meta…</option>
+            </select>
+            {gSlug === CUSTOM && (
+              <input className={inputCls + " mt-2"} placeholder="Archetype name" value={gCustom} onChange={(e) => setGCustom(e.target.value)} />
+            )}
+          </div>
+          <input
+            className={inputCls}
+            placeholder="Opponent's deck (optional)"
+            value={gOpp}
+            onChange={(e) => setGOpp(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addGame(); } }}
+          />
+          <div className="flex gap-2">
+            {(["win", "loss"] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setGResult(r)}
+                className="flex-1 -skew-x-12 border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors"
+                style={gResult === r
+                  ? { background: r === "win" ? WIN : LOSS, borderColor: "transparent", color: "white", boxShadow: "3px 3px 0 rgba(0,0,0,0.4)" }
+                  : { borderColor: "rgba(255,255,255,0.15)", color: "var(--color-fog-400)" }}
+              >
+                <span className="block skew-x-12">{r}</span>
+              </button>
+            ))}
+            <button type="button" onClick={addGame} className="-skew-x-12 border border-brand-400/50 bg-brand-500/15 px-4 text-xs font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30">
+              <span className="block skew-x-12">Add</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button onClick={save} disabled={busy} className="-skew-x-12 bg-brand-500 px-6 py-2 disabled:opacity-50" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.5)" }}>
+          <span className="block skew-x-12 font-display text-xs font-extrabold uppercase italic tracking-wide text-white">
+            {busy ? "Saving…" : existing ? "Save changes" : "Log scrim"}
+          </span>
+        </button>
+        <button onClick={onCancel} className="text-sm text-fog-500 hover:text-fog-100">Cancel</button>
+        {msg && <span className="text-xs text-cyber-400">{msg}</span>}
+      </div>
+    </div>
+  );
+}
+
+/* ── collapsed "+ Log scrim" → form panel ── */
+function LogScrim({ handle, onSaved }: { handle: string; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="-skew-x-12 bg-brand-500 px-6 py-2.5" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.5)" }}>
+        <span className="block skew-x-12 font-display text-sm font-extrabold uppercase italic tracking-wide text-white">+ Log scrim</span>
+      </button>
+    );
+  }
+  return (
+    <div className="clip-corner relative border border-white/10 bg-ink-850 p-6" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}>
+      <h3 className="text-persona mb-4 text-lg text-fog-100">Log a scrim</h3>
+      <ScrimForm handle={handle} onSaved={() => { setOpen(false); onSaved(); }} onCancel={() => setOpen(false)} />
+    </div>
+  );
+}
+
+/* ── one scrim session card (accordion, like MatchCard) ── */
+function ScrimCard({
+  scrim,
+  handle,
+  isCaptain,
+  onChange,
+  expanded,
+  onToggle,
+}: {
+  scrim: ScrimRow;
+  handle: string;
+  isCaptain: boolean;
+  onChange: () => void;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const games = scrim.games ?? [];
+  const wins = games.filter((g) => g.result === "win").length;
+  const losses = games.length - wins;
+  const accent = wins > losses ? WIN : wins < losses ? LOSS : "var(--color-gold-500)";
+  const canEdit = scrim.logged_by === handle || isCaptain;
+
+  async function remove() {
+    if (!window.confirm("Delete this scrim and all its games?")) return;
+    await getBrowserSupabase().from("scrims").delete().eq("id", scrim.id);
+    onChange();
+  }
+
+  return (
+    <div
+      className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850"
+      style={{ boxShadow: `6px 6px 0 rgba(0,0,0,0.45), inset 3px 0 0 ${accent}` }}
+    >
+      <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`relative flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 py-4 text-left transition-colors hover:bg-white/[0.02] sm:px-6 ${expanded ? "border-b border-white/10" : ""}`}
+      >
+        <div className="min-w-0">
+          <h3 className="text-persona text-lg text-fog-100">vs {scrim.opponent_team}</h3>
+          <p className="mt-0.5 text-xs text-fog-500">
+            {scrim.format ? `${scrim.format} · ` : ""}
+            {new Date(scrim.played_at).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+            <span className="ml-1 text-fog-600">· logged by {getPlayer(scrim.logged_by)?.name ?? scrim.logged_by}</span>
+          </p>
+        </div>
+        <span className="flex shrink-0 items-center gap-2.5">
+          <span
+            className="-skew-x-12 px-3 py-1 text-xs font-bold tabular-nums tracking-wide"
+            style={{ background: `color-mix(in oklab, ${accent} 82%, black)`, color: "white", boxShadow: "3px 3px 0 rgba(0,0,0,0.4)" }}
+          >
+            <span className="block skew-x-12">{wins}–{losses}</span>
+          </span>
+          <span className="text-xs text-fog-600">{expanded ? "▲" : "▼"}</span>
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="relative space-y-4 p-5 sm:p-6">
+          {editing ? (
+            <ScrimForm
+              handle={handle}
+              existing={scrim}
+              onSaved={() => { setEditing(false); onChange(); }}
+              onCancel={() => setEditing(false)}
+            />
+          ) : (
+            <>
+              <div className="space-y-1.5">
+                {games.map((g, i) => (
+                  <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2 text-xs">
+                    <GamePip result={g.result} />
+                    <span className="text-fog-200">{getPlayer(g.player)?.name ?? g.player}</span>
+                    <DeckChip deckSlug={g.deckSlug ?? undefined} name={g.deckName} size="sm" />
+                    {g.oppDeck && <span className="text-fog-500">vs {g.oppDeck}</span>}
+                  </div>
+                ))}
+              </div>
+              {scrim.notes && <p className="text-xs text-fog-500">{scrim.notes}</p>}
+              {canEdit && (
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={() => setEditing(true)} className="-skew-x-12 border border-white/15 px-4 py-1.5 text-xs font-bold uppercase text-fog-300 hover:text-fog-100">
+                    <span className="block skew-x-12">Edit</span>
+                  </button>
+                  <button onClick={remove} className="-skew-x-12 border border-cyber-500/40 px-4 py-1.5 text-xs font-bold uppercase text-cyber-400 hover:bg-cyber-500/15">
+                    <span className="block skew-x-12">Delete</span>
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── aggregate scrim insights (per deck / per player / vs archetype) ── */
+function ScrimStatsPanel({ scrims }: { scrims: ScrimRow[] }) {
+  const stats = useMemo(() => scrimStats(scrims), [scrims]);
+
+  const sortRecs = <T extends ScrimRecord>(recs: Record<string, T>): T[] =>
+    Object.values(recs).sort((a, b) => b.wins + b.losses - (a.wins + a.losses));
+
+  const Row = ({ rec, chip }: { rec: ScrimRecord; chip?: React.ReactNode }) => {
+    const wr = winRate(rec.wins, rec.losses);
+    return (
+      <div className="flex items-center gap-2 text-xs">
+        {chip ?? <span className="min-w-0 truncate text-fog-200">{rec.display}</span>}
+        <span className="ml-auto shrink-0 tabular-nums text-fog-500">{rec.wins}–{rec.losses}</span>
+        <span className="w-9 shrink-0 text-right tabular-nums" style={{ color: wr >= 50 ? "var(--color-brand-300)" : "var(--color-cyber-400)" }}>
+          {wr}%
+        </span>
+      </div>
+    );
+  };
+
+  const cols: [string, ScrimRecord[], boolean][] = [
+    ["By deck", sortRecs(stats.perDeck), true],
+    ["By player", sortRecs(stats.perPlayer), false],
+    ["Vs archetype", sortRecs(stats.vsArchetype), false],
+  ];
+
+  return (
+    <div className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850 p-5 sm:p-6" style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}>
+      <div className="halftone pointer-events-none absolute inset-0 opacity-[0.04]" aria-hidden />
+      <p className="relative mb-4 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand-300">
+        <Star className="h-2.5 w-2.5" /> Scrim insights
+      </p>
+      <div className="relative grid gap-5 sm:grid-cols-3">
+        {cols.map(([label, recs, isDeck]) => (
+          <div key={label} className="min-w-0">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-fog-600">{label}</p>
+            <div className="space-y-1.5">
+              {recs.map((rec, i) => (
+                <Row
+                  key={i}
+                  rec={rec}
+                  chip={isDeck ? <DeckChip deckSlug={(rec as ScrimRecord & { deckSlug: string | null }).deckSlug ?? undefined} name={rec.display} size="sm" link={false} /> : (
+                    <span className="min-w-0 truncate text-fog-200">
+                      {label === "By player" ? getPlayer(rec.display)?.name ?? rec.display : rec.display}
+                    </span>
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── portal identity header ── */
 function PortalIdentity({ handle, isCaptain, onLogout }: { handle: string; isCaptain: boolean; onLogout: () => void }) {
   const player = getPlayer(handle);
@@ -1088,9 +1429,10 @@ export default function WarRoomPage() {
   const [busy, setBusy] = useState(false);
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [entries, setEntries] = useState<LineupEntryRow[]>([]);
+  const [scrims, setScrims] = useState<ScrimRow[] | null>([]); // null = scrims table not migrated yet
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [lightbox, setLightbox] = useState<Lightbox>(null);
-  const [tab, setTab] = useState<"matches" | "tournaments" | "blog" | "history">("matches");
+  const [tab, setTab] = useState<"matches" | "scrims" | "tournaments" | "blog" | "history">("matches");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const handle = useMemo(() => {
@@ -1116,6 +1458,7 @@ export default function WarRoomPage() {
     setMatches(ms);
     const es = await fetchEntries(ms.map((m) => m.id));
     setEntries(es);
+    setScrims(await fetchScrims());
     const paths = es.flatMap((e) => [e.main_image, e.side_image]).filter(Boolean) as string[];
     setUrls(await signedUrls(paths));
   }, []);
@@ -1190,6 +1533,7 @@ export default function WarRoomPage() {
           <div className="flex flex-wrap gap-2">
             {([
               ["matches", "Matches", active.length],
+              ["scrims", "Scrims", scrims?.length ?? 0],
               ["tournaments", "Tournaments", Object.keys(RULE_PRESETS).length],
               ["blog", "Blog", null],
               ["history", "History", done.length],
@@ -1232,6 +1576,35 @@ export default function WarRoomPage() {
               )}
             </div>
           )}
+
+          {tab === "scrims" &&
+            (scrims === null ? (
+              <p className="text-fog-500">
+                Scrim table isn&apos;t set up yet — run <code className="text-brand-300">supabase/scrims-schema.sql</code> in the Supabase SQL Editor.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <LogScrim handle={handle} onSaved={load} />
+                {scrims.length === 0 ? (
+                  <p className="text-fog-500">No scrims logged yet. Log the first one above.</p>
+                ) : (
+                  <>
+                    {scrims.some((s) => (s.games ?? []).length > 0) && <ScrimStatsPanel scrims={scrims} />}
+                    {scrims.map((s) => (
+                      <ScrimCard
+                        key={s.id}
+                        scrim={s}
+                        handle={handle}
+                        isCaptain={!!isCaptain}
+                        onChange={load}
+                        expanded={expandedId === s.id}
+                        onToggle={() => setExpandedId((id) => (id === s.id ? null : s.id))}
+                      />
+                    ))}
+                  </>
+                )}
+              </div>
+            ))}
 
           {tab === "tournaments" && (
             <div className="space-y-4">

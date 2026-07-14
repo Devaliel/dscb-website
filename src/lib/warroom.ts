@@ -155,6 +155,85 @@ export async function fetchEntries(matchIds: string[]): Promise<LineupEntryRow[]
   }
 }
 
+/** One recorded game inside a scrim session. */
+export interface ScrimGame {
+  player: string; // our player's handle
+  deckSlug: string | null; // null for custom/off-meta archetypes
+  deckName: string;
+  oppDeck: string; // opponent's archetype, free text
+  result: "win" | "loss";
+}
+
+/** A practice session vs another team. Team-only (no anon read policy). */
+export interface ScrimRow {
+  id: string;
+  opponent_team: string;
+  played_at: string; // ISO
+  format: string;
+  notes: string | null;
+  logged_by: string; // player handle
+  games: ScrimGame[];
+  created_at: string;
+}
+
+const SCRIM_COLS = "id,opponent_team,played_at,format,notes,logged_by,games,created_at";
+
+/**
+ * Team: all scrims, newest first.
+ * Returns null when the query errors (scrims table not migrated yet) so the tab
+ * can show the run-the-SQL hint; [] just means no scrims logged.
+ */
+export async function fetchScrims(): Promise<ScrimRow[] | null> {
+  try {
+    const { data, error } = await getBrowserSupabase()
+      .from("scrims")
+      .select(SCRIM_COLS)
+      .order("played_at", { ascending: false });
+    if (error) return null;
+    return (data ?? []) as unknown as ScrimRow[];
+  } catch {
+    return null;
+  }
+}
+
+export interface ScrimRecord {
+  display: string;
+  wins: number;
+  losses: number;
+}
+
+/** Aggregates scrim games into per-deck / per-player / vs-archetype W-L records. */
+export function scrimStats(scrims: ScrimRow[]): {
+  perDeck: Record<string, ScrimRecord & { deckSlug: string | null }>;
+  perPlayer: Record<string, ScrimRecord>;
+  vsArchetype: Record<string, ScrimRecord>;
+} {
+  const perDeck: Record<string, ScrimRecord & { deckSlug: string | null }> = {};
+  const perPlayer: Record<string, ScrimRecord> = {};
+  const vsArchetype: Record<string, ScrimRecord> = {};
+  const bump = (rec: ScrimRecord, result: ScrimGame["result"]) => {
+    if (result === "win") rec.wins += 1;
+    else rec.losses += 1;
+  };
+  for (const s of scrims) {
+    for (const g of s.games ?? []) {
+      const deckKey = g.deckSlug ?? normalizeCardName(g.deckName);
+      if (!perDeck[deckKey]) perDeck[deckKey] = { display: g.deckName, deckSlug: g.deckSlug, wins: 0, losses: 0 };
+      bump(perDeck[deckKey], g.result);
+
+      if (!perPlayer[g.player]) perPlayer[g.player] = { display: g.player, wins: 0, losses: 0 };
+      bump(perPlayer[g.player], g.result);
+
+      const oppKey = normalizeCardName(g.oppDeck);
+      if (oppKey) {
+        if (!vsArchetype[oppKey]) vsArchetype[oppKey] = { display: g.oppDeck.trim(), wins: 0, losses: 0 };
+        bump(vsArchetype[oppKey], g.result);
+      }
+    }
+  }
+  return { perDeck, perPlayer, vsArchetype };
+}
+
 /** True when the War Room tables aren't migrated yet (graceful pre-migration UI). */
 export async function warroomReady(): Promise<boolean> {
   try {
