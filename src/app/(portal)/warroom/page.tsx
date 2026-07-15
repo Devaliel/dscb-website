@@ -1057,10 +1057,16 @@ function GamePip({ result }: { result: ScrimGame["result"] }) {
 }
 
 /* ── one scrim game line: pip + player + deck vs opponent (member or free text) ── */
-function GameLine({ g, link = false }: { g: ScrimGame; link?: boolean }) {
+function GameLine({ g, link = false, onFlip }: { g: ScrimGame; link?: boolean; onFlip?: () => void }) {
   return (
     <>
-      <GamePip result={g.result} />
+      {onFlip ? (
+        <button type="button" onClick={onFlip} title="Flip win/loss" className="transition-transform hover:scale-110">
+          <GamePip result={g.result} />
+        </button>
+      ) : (
+        <GamePip result={g.result} />
+      )}
       <span className="text-fog-200">{getPlayer(g.player)?.name ?? g.player}</span>
       <DeckChip deckSlug={g.deckSlug ?? undefined} name={g.deckName} size="sm" link={link} />
       {(g.oppPlayer || g.oppDeck) && <span className="text-fog-600">vs</span>}
@@ -1106,6 +1112,30 @@ function ScrimForm({
   const [gOppSlug, setGOppSlug] = useState(""); // "" = unknown/skip
   const [gOppCustom, setGOppCustom] = useState("");
   const [gResult, setGResult] = useState<ScrimGame["result"]>("win");
+  const [editIdx, setEditIdx] = useState<number | null>(null); // which logged game the draft inputs are editing
+
+  /** Load an existing game into the draft inputs for in-place editing. */
+  function startEdit(i: number) {
+    const g = games[i];
+    setGPlayer(g.player);
+    setGSlug(g.deckSlug ?? CUSTOM);
+    setGCustom(g.deckSlug ? "" : g.deckName);
+    setGOppPlayer(g.oppPlayer ?? "");
+    setGOppSlug(g.oppDeckSlug ?? (g.oppDeck ? CUSTOM : ""));
+    setGOppCustom(g.oppDeckSlug ? "" : g.oppDeck);
+    setGResult(g.result);
+    setMsg(null);
+    setEditIdx(i);
+  }
+
+  function removeGame(i: number) {
+    setGames(games.filter((_, idx) => idx !== i));
+    setEditIdx(null); // indices shifted — safest to drop edit mode
+  }
+
+  function flipResult(i: number) {
+    setGames(games.map((g, idx) => (idx === i ? { ...g, result: g.result === "win" ? "loss" : "win" } : g)));
+  }
 
   function addGame() {
     const deckName = gSlug === CUSTOM ? gCustom.trim() : decks.find((d) => d.slug === gSlug)?.name ?? "";
@@ -1113,7 +1143,7 @@ function ScrimForm({
     if (gOppPlayer && gOppPlayer === gPlayer) { setMsg("A player can't scrim themselves."); return; }
     const oppDeck = gOppSlug === CUSTOM ? gOppCustom.trim() : decks.find((d) => d.slug === gOppSlug)?.name ?? "";
     setMsg(null);
-    setGames([...games, {
+    const built: ScrimGame = {
       player: gPlayer,
       deckSlug: gSlug === CUSTOM ? null : gSlug,
       deckName,
@@ -1121,7 +1151,13 @@ function ScrimForm({
       oppPlayer: gOppPlayer || null,
       oppDeckSlug: oppDeck && gOppSlug !== CUSTOM ? gOppSlug : null,
       result: gResult,
-    }]);
+    };
+    if (editIdx !== null) {
+      setGames(games.map((g, i) => (i === editIdx ? built : g)));
+      setEditIdx(null);
+    } else {
+      setGames([...games, built]);
+    }
   }
 
   async function save() {
@@ -1163,9 +1199,22 @@ function ScrimForm({
         {games.length > 0 && (
           <div className="mb-2 space-y-1.5">
             {games.map((g, i) => (
-              <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/[0.03] px-3 py-1.5 text-xs">
-                <GameLine g={g} />
-                <button type="button" onClick={() => setGames(games.filter((_, idx) => idx !== i))} className="ml-auto text-fog-500 hover:text-cyber-400">×</button>
+              <div
+                key={i}
+                className="flex flex-wrap items-center gap-2 rounded-lg border px-3 py-1.5 text-xs"
+                style={editIdx === i
+                  ? { borderColor: "var(--color-brand-400)", background: "color-mix(in oklab, var(--color-brand-500) 8%, transparent)" }
+                  : { borderColor: "transparent", background: "rgba(255,255,255,0.03)" }}
+              >
+                <GameLine g={g} onFlip={() => flipResult(i)} />
+                <button
+                  type="button"
+                  onClick={() => (editIdx === i ? setEditIdx(null) : startEdit(i))}
+                  className="ml-auto text-[10px] font-bold uppercase tracking-wide text-brand-300 hover:text-brand-200"
+                >
+                  {editIdx === i ? "Editing…" : "Edit"}
+                </button>
+                <button type="button" onClick={() => removeGame(i)} className="text-fog-500 hover:text-cyber-400">×</button>
               </div>
             ))}
           </div>
@@ -1221,8 +1270,13 @@ function ScrimForm({
               </button>
             ))}
             <button type="button" onClick={addGame} className="-skew-x-12 border border-brand-400/50 bg-brand-500/15 px-4 text-xs font-bold uppercase tracking-wide text-brand-300 hover:bg-brand-500/30">
-              <span className="block skew-x-12">Add</span>
+              <span className="block skew-x-12">{editIdx !== null ? "Update" : "Add"}</span>
             </button>
+            {editIdx !== null && (
+              <button type="button" onClick={() => setEditIdx(null)} className="text-xs text-fog-500 hover:text-fog-100">
+                cancel
+              </button>
+            )}
           </div>
         </div>
       </div>
