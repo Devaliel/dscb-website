@@ -28,6 +28,46 @@ function pickRandomArt(): string[] {
 const SEAM_LEFT = "polygon(0 0, 56% 0, 50% 25%, 58% 50%, 48% 75%, 54% 100%, 0 100%)";
 const SEAM_RIGHT = "polygon(100% 0, 56% 0, 50% 25%, 58% 50%, 48% 75%, 54% 100%, 100% 100%)";
 
+/**
+ * Framed square art tile — the deck-art library is 1:1, so a square window shows the
+ * whole image with zero cropping (the earlier full-bleed background approach smeared
+ * square art across a ~2:1 panel half and always cut it off). Hides itself on load error.
+ */
+function SquareArt({
+  src,
+  ring,
+  className = "",
+  delay = 0,
+}: {
+  src: string;
+  ring: string;
+  className?: string;
+  delay?: number;
+}) {
+  const reduce = useReducedMotion();
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    <motion.div
+      initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.45, delay, ease: [0.34, 1.56, 0.64, 1] }}
+      className={`relative aspect-square shrink-0 overflow-hidden ${className}`}
+      style={{ boxShadow: `6px 6px 0 rgba(0,0,0,0.5), 0 0 0 2px ${ring}` }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        onError={() => setOk(false)}
+        className="pointer-events-none h-full w-full select-none object-cover"
+        style={{ filter: "brightness(0.9) saturate(1.05)" }}
+      />
+    </motion.div>
+  );
+}
+
 /** One countdown digit slot with a scoreboard tick-flip on change. */
 function DigitFlip({ value, label }: { value: number; label: string }) {
   return (
@@ -119,15 +159,15 @@ export default function NextMatchHype({ match }: { match: MatchRow }) {
             style={{ clipPath: SEAM_LEFT }}
           >
             <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, var(--color-ink-800), var(--color-brand-500) 160%)" }} />
-            {art[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={art[0]} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-overlay" />
-            )}
             <div className="halftone absolute inset-0 opacity-[0.05]" aria-hidden />
-            <div className="relative flex h-full flex-col items-start justify-end p-6 sm:p-8">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/celebeast-logo.png" alt="" className="mb-3 h-10 w-10 rounded-lg object-contain sm:h-14 sm:w-14" />
-              <p className="text-persona text-2xl text-white sm:text-4xl">DS Celebeast</p>
+            {/* content stays inside the visible left wedge (~55%) so it never runs under the seam */}
+            <div className="relative flex h-full w-[42%] items-center justify-start gap-4 p-6 sm:gap-5 sm:p-8">
+              {art[0] && <SquareArt src={art[0]} ring="var(--color-brand-400)" className="h-[48%] -rotate-3" delay={0.3} />}
+              <div className="min-w-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/celebeast-logo.png" alt="" className="mb-2 h-10 w-10 rounded-lg object-contain sm:h-12 sm:w-12" />
+                <p className="text-persona text-xl text-white sm:text-2xl">DS Celebeast</p>
+              </div>
             </div>
           </motion.div>
 
@@ -139,16 +179,17 @@ export default function NextMatchHype({ match }: { match: MatchRow }) {
             style={{ clipPath: SEAM_RIGHT }}
           >
             <div className="absolute inset-0" style={{ background: "linear-gradient(225deg, var(--color-ink-800), var(--color-cyber-500) 160%)" }} />
-            {art[1] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={art[1]} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-overlay" />
-            )}
             <div className="halftone absolute inset-0 opacity-[0.05]" aria-hidden />
-            <div className="relative flex h-full flex-col items-end justify-end p-6 text-right sm:p-8">
-              <span className="mb-2 font-display text-6xl font-black italic text-white/25 sm:text-8xl" aria-hidden>
-                {label.charAt(0)}
-              </span>
-              <p className="text-persona text-2xl text-white sm:text-4xl">{label}</p>
+            <span
+              className="pointer-events-none absolute bottom-2 right-4 font-display text-7xl font-black italic text-white/15 sm:text-9xl"
+              aria-hidden
+            >
+              {label.charAt(0)}
+            </span>
+            {/* mirror: content confined to the visible right wedge */}
+            <div className="relative ml-auto flex h-full w-[42%] items-center justify-end gap-4 p-6 text-right sm:gap-5 sm:p-8">
+              <p className="text-persona min-w-0 text-xl text-white sm:text-2xl">{label}</p>
+              {art[1] && <SquareArt src={art[1]} ring="var(--color-cyber-400)" className="h-[48%] rotate-3" delay={0.4} />}
             </div>
           </motion.div>
 
@@ -167,29 +208,23 @@ export default function NextMatchHype({ match }: { match: MatchRow }) {
 
         {/* mobile: stacked cards, no split — the diagonal seam doesn't read well this narrow */}
         <div className="mx-auto flex w-full max-w-xs flex-col items-stretch gap-2 sm:hidden">
-          <div className="clip-corner relative flex items-center gap-3 overflow-hidden border border-white/10 bg-ink-850 p-4" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.4)" }}>
-            {art[0] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={art[0]} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-overlay" />
-            )}
+          <div className="clip-corner relative flex items-center gap-3 border border-white/10 bg-ink-850 p-3.5" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.4)" }}>
+            {art[0] && <SquareArt src={art[0]} ring="var(--color-brand-400)" className="h-12 -rotate-2" delay={0.1} />}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/celebeast-logo.png" alt="" className="relative h-9 w-9 shrink-0 rounded-lg object-contain" />
-            <p className="text-persona relative truncate text-lg text-fog-100">DS Celebeast</p>
+            <img src="/celebeast-logo.png" alt="" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
+            <p className="text-persona truncate text-lg text-fog-100">DS Celebeast</p>
           </div>
           <span className="mx-auto text-persona text-sm text-fog-600">vs</span>
-          <div className="clip-corner relative flex items-center gap-3 overflow-hidden border border-white/10 bg-ink-850 p-4" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.4)" }}>
-            {art[1] && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={art[1]} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-20 mix-blend-overlay" />
-            )}
+          <div className="clip-corner relative flex items-center gap-3 border border-white/10 bg-ink-850 p-3.5" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.4)" }}>
+            {art[1] && <SquareArt src={art[1]} ring="var(--color-cyber-400)" className="h-12 rotate-2" delay={0.2} />}
             <div
-              className="relative grid h-9 w-9 shrink-0 place-items-center rounded-lg font-display text-base font-bold text-cyber-400"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg font-display text-base font-bold text-cyber-400"
               style={{ background: "color-mix(in oklab, var(--color-cyber-500) 25%, transparent)" }}
               aria-hidden
             >
               {label.charAt(0)}
             </div>
-            <p className="text-persona relative truncate text-lg text-fog-100">{label}</p>
+            <p className="text-persona truncate text-lg text-fog-100">{label}</p>
           </div>
         </div>
 

@@ -58,7 +58,7 @@ function Unit({ value, label }: { value: number; label: string }) {
 }
 
 /** One angled, darkened deck-art accent. Hides itself if the image fails to load. */
-function ArtAccent({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
+export function ArtAccent({ src, className, style }: { src: string; className?: string; style?: React.CSSProperties }) {
   const [ok, setOk] = useState(true);
   if (!ok) return null;
   return (
