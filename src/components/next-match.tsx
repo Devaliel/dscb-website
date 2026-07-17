@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import Star from "@/components/persona/star";
+import { TransitionLink } from "@/components/persona/transition-provider";
 import { fetchNextMatch, type MatchRow } from "@/lib/warroom";
 import { getAllDecks } from "@/lib/data";
 
 /** Deterministic 2 distinct deck-art images from a match id — stable per match, no flicker. */
-function pickArt(seed: string): string[] {
+export function pickArt(seed: string): string[] {
   const pool = getAllDecks()
     .map((d) => d.image)
     .filter((img): img is string => Boolean(img));
@@ -27,7 +28,7 @@ function pickArt(seed: string): string[] {
  * Public "Next Match" teaser — opponent + a live countdown. NEVER shows decks or lineup.
  * Renders nothing until an upcoming (status "open", future) match exists.
  */
-function useCountdown(target: string): { d: number; h: number; m: number; s: number; past: boolean } {
+export function useCountdown(target: string): { d: number; h: number; m: number; s: number; past: boolean } {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -100,11 +101,12 @@ export default function NextMatch() {
 
   return (
     <section className="mx-auto max-w-6xl px-6 pt-8">
+      <TransitionLink href="/next-match" className="group block">
       <motion.div
         initial={reduce ? { opacity: 0 } : { opacity: 0, y: 20, skewY: 1 }}
         animate={{ opacity: 1, y: 0, skewY: 0 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-        className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850"
+        className="clip-corner relative overflow-hidden border border-white/10 bg-ink-850 transition-transform duration-300 group-hover:-translate-y-1"
         style={{ boxShadow: "6px 6px 0 rgba(0,0,0,0.45)" }}
       >
         {/* decorative deck-art wash (right side, behind content) — heavily muted so it reads
@@ -169,6 +171,9 @@ export default function NextMatch() {
               {match.tournament_name ? `${match.tournament_name} · ` : ""}
               {when}
             </p>
+            <span className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide text-brand-300 opacity-70 transition-opacity group-hover:opacity-100">
+              Full countdown →
+            </span>
           </div>
 
           <div className="flex shrink-0 items-start gap-2.5 sm:gap-3">
@@ -179,6 +184,7 @@ export default function NextMatch() {
           </div>
         </div>
       </motion.div>
+      </TransitionLink>
     </section>
   );
 }
