@@ -24,15 +24,6 @@ function pickRandomArt(): string[] {
   return [pool[a], pool[b]];
 }
 
-/**
- * Diagonal seam on the OPPONENT panel — cuts its inner edge so the DSCB panel behind
- * shows through, forming the fight-card split. Orientation-aware: portrait stacks the
- * panels top/bottom (seam is horizontal-ish), landscape sits them side-by-side (seam
- * vertical-ish). Both keep each panel near-square so the 1:1 deck art barely crops.
- */
-const SEAM_PORTRAIT = "polygon(0 14%, 100% 0, 100% 100%, 0 100%)";
-const SEAM_LANDSCAPE = "polygon(14% 0, 100% 0, 100% 100%, 0 100%)";
-
 /** Full-bleed deck art behind a team panel. Hides itself if the file fails to load. */
 function PanelArt({ src, tint }: { src: string; tint: string }) {
   const [ok, setOk] = useState(true);
@@ -121,10 +112,13 @@ export default function NextMatchHype({ match }: { match: MatchRow }) {
   return (
     <section className="relative h-[100dvh] w-full overflow-hidden bg-ink-950">
       {/* ── the two art panels — stacked in portrait, side-by-side in landscape.
-             BOTH are real flex-1 boxes (~near-square at full-screen) so the 1:1 deck art
-             barely crops; the opponent panel is clipped + overlapped to form the seam. ── */}
+             Plain flex-1 boxes flush against each other: flexbox guarantees zero gap
+             at any viewport width (an earlier clip-path + fixed-px-overlap version left
+             a widening gap on wider screens since the clip was percentage-based but the
+             overlap wasn't). Each panel ends up ~near-square, so the 1:1 deck art barely
+             crops. The "seam" look now comes from a thin accent bar drawn on top, not
+             from the art itself interlocking. ── */}
       <div className="absolute inset-0 flex flex-col landscape:flex-row">
-        {/* DSCB */}
         <motion.div
           initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -133,17 +127,33 @@ export default function NextMatchHype({ match }: { match: MatchRow }) {
         >
           {art[0] && <PanelArt src={art[0]} tint="linear-gradient(160deg, color-mix(in oklab, var(--color-brand-500) 30%, transparent), color-mix(in oklab, var(--color-ink-950) 55%, transparent))" />}
         </motion.div>
-        {/* opponent — clipped inner edge + negative margin tucks it under DSCB's seam */}
         <motion.div
           initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, ease: EASE, delay: 0.08 }}
-          className="relative -mt-14 flex-1 overflow-hidden [clip-path:var(--seam-p)] landscape:-ml-14 landscape:mt-0 landscape:[clip-path:var(--seam-l)]"
-          style={{ ["--seam-p" as string]: SEAM_PORTRAIT, ["--seam-l" as string]: SEAM_LANDSCAPE }}
+          className="relative flex-1 overflow-hidden"
         >
           {art[1] && <PanelArt src={art[1]} tint="linear-gradient(200deg, color-mix(in oklab, var(--color-cyber-500) 30%, transparent), color-mix(in oklab, var(--color-ink-950) 55%, transparent))" />}
         </motion.div>
       </div>
+
+      {/* seam accent — horizontal bar in portrait (panels stacked), vertical in landscape */}
+      <motion.div
+        initial={reduce ? { opacity: 0 } : { opacity: 0, scaleX: 0 }}
+        animate={{ opacity: 1, scaleX: 1 }}
+        transition={{ duration: 0.5, delay: 0.25, ease: EASE }}
+        className="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-1 -translate-y-1/2 landscape:hidden"
+        style={{ background: "linear-gradient(90deg, var(--color-brand-400), var(--color-gold-500), var(--color-cyber-400))", boxShadow: "0 0 20px rgba(0,0,0,0.6)" }}
+        aria-hidden
+      />
+      <motion.div
+        initial={reduce ? { opacity: 0 } : { opacity: 0, scaleY: 0 }}
+        animate={{ opacity: 1, scaleY: 1 }}
+        transition={{ duration: 0.5, delay: 0.25, ease: EASE }}
+        className="pointer-events-none absolute inset-y-0 left-1/2 z-10 hidden w-1 -translate-x-1/2 landscape:block"
+        style={{ background: "linear-gradient(180deg, var(--color-brand-400), var(--color-gold-500), var(--color-cyber-400))", boxShadow: "0 0 20px rgba(0,0,0,0.6)" }}
+        aria-hidden
+      />
 
       {/* ── readability scrims: darken top + bottom so overlaid text always pops ── */}
       <div
