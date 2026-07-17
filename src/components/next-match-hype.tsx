@@ -24,47 +24,35 @@ function pickRandomArt(): string[] {
   return [pool[a], pool[b]];
 }
 
-/* jagged diagonal seam — identical interior vertices so the two panels tile with no gap */
-const SEAM_LEFT = "polygon(0 0, 56% 0, 50% 25%, 58% 50%, 48% 75%, 54% 100%, 0 100%)";
-const SEAM_RIGHT = "polygon(100% 0, 56% 0, 50% 25%, 58% 50%, 48% 75%, 54% 100%, 100% 100%)";
-
 /**
- * Framed square art tile — the deck-art library is 1:1, so a square window shows the
- * whole image with zero cropping (the earlier full-bleed background approach smeared
- * square art across a ~2:1 panel half and always cut it off). Hides itself on load error.
+ * Diagonal seam on the OPPONENT panel — cuts its inner edge so the DSCB panel behind
+ * shows through, forming the fight-card split. Orientation-aware: portrait stacks the
+ * panels top/bottom (seam is horizontal-ish), landscape sits them side-by-side (seam
+ * vertical-ish). Both keep each panel near-square so the 1:1 deck art barely crops.
  */
-function SquareArt({
-  src,
-  ring,
-  className = "",
-  delay = 0,
-}: {
-  src: string;
-  ring: string;
-  className?: string;
-  delay?: number;
-}) {
-  const reduce = useReducedMotion();
+const SEAM_PORTRAIT = "polygon(0 14%, 100% 0, 100% 100%, 0 100%)";
+const SEAM_LANDSCAPE = "polygon(14% 0, 100% 0, 100% 100%, 0 100%)";
+
+/** Full-bleed deck art behind a team panel. Hides itself if the file fails to load. */
+function PanelArt({ src, tint }: { src: string; tint: string }) {
   const [ok, setOk] = useState(true);
-  if (!ok) return null;
   return (
-    <motion.div
-      initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.45, delay, ease: [0.34, 1.56, 0.64, 1] }}
-      className={`relative aspect-square shrink-0 overflow-hidden ${className}`}
-      style={{ boxShadow: `6px 6px 0 rgba(0,0,0,0.5), 0 0 0 2px ${ring}` }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden
-        onError={() => setOk(false)}
-        className="pointer-events-none h-full w-full select-none object-cover"
-        style={{ filter: "brightness(0.9) saturate(1.05)" }}
-      />
-    </motion.div>
+    <>
+      {ok && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt=""
+          aria-hidden
+          onError={() => setOk(false)}
+          className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover object-center"
+          style={{ filter: "brightness(0.95) saturate(1.05)" }}
+        />
+      )}
+      {/* team-colour wash — legibility that never depends on the image's own luminance */}
+      <div className="absolute inset-0" style={{ background: tint }} aria-hidden />
+      <div className="halftone absolute inset-0 opacity-[0.06]" aria-hidden />
+    </>
   );
 }
 
@@ -73,8 +61,8 @@ function DigitFlip({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
       <span
-        className="relative grid h-16 w-14 -skew-x-12 place-items-center overflow-hidden bg-ink-950/70 sm:h-20 sm:w-16"
-        style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.45)" }}
+        className="relative grid h-14 w-12 -skew-x-12 place-items-center overflow-hidden bg-ink-950/80 sm:h-20 sm:w-16"
+        style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.5)" }}
       >
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.span
@@ -83,13 +71,13 @@ function DigitFlip({ value, label }: { value: number; label: string }) {
             animate={{ y: "0%", opacity: 1 }}
             exit={{ y: "100%", opacity: 0 }}
             transition={{ duration: 0.35, ease: EASE }}
-            className="absolute block skew-x-12 font-display text-3xl font-extrabold italic tabular-nums text-fog-100 sm:text-5xl"
+            className="absolute block skew-x-12 font-display text-2xl font-extrabold italic tabular-nums text-fog-100 sm:text-5xl"
           >
             {String(value).padStart(2, "0")}
           </motion.span>
         </AnimatePresence>
       </span>
-      <span className="mt-2 text-[11px] font-bold uppercase tracking-widest text-fog-600 sm:text-xs">{label}</span>
+      <span className="mt-1.5 text-[10px] font-bold uppercase tracking-widest text-fog-500 sm:text-xs">{label}</span>
     </div>
   );
 }
@@ -131,108 +119,107 @@ export default function NextMatchHype({ match }: { match: MatchRow }) {
   }
 
   return (
-    <section className="relative flex min-h-[100dvh] flex-col overflow-hidden px-6 pb-16 pt-28 sm:pt-32">
-      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden>
-        <div className="absolute left-1/4 top-10 h-72 w-72 rounded-full bg-brand-500/20 blur-[110px]" />
-        <div className="absolute right-1/4 top-24 h-72 w-72 rounded-full bg-cyber-500/20 blur-[110px]" />
+    <section className="relative h-[100dvh] w-full overflow-hidden bg-ink-950">
+      {/* ── the two art panels — stacked in portrait, side-by-side in landscape.
+             BOTH are real flex-1 boxes (~near-square at full-screen) so the 1:1 deck art
+             barely crops; the opponent panel is clipped + overlapped to form the seam. ── */}
+      <div className="absolute inset-0 flex flex-col landscape:flex-row">
+        {/* DSCB */}
+        <motion.div
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: EASE }}
+          className="relative flex-1 overflow-hidden"
+        >
+          {art[0] && <PanelArt src={art[0]} tint="linear-gradient(160deg, color-mix(in oklab, var(--color-brand-500) 30%, transparent), color-mix(in oklab, var(--color-ink-950) 55%, transparent))" />}
+        </motion.div>
+        {/* opponent — clipped inner edge + negative margin tucks it under DSCB's seam */}
+        <motion.div
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.04 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.08 }}
+          className="relative -mt-14 flex-1 overflow-hidden [clip-path:var(--seam-p)] landscape:-ml-14 landscape:mt-0 landscape:[clip-path:var(--seam-l)]"
+          style={{ ["--seam-p" as string]: SEAM_PORTRAIT, ["--seam-l" as string]: SEAM_LANDSCAPE }}
+        >
+          {art[1] && <PanelArt src={art[1]} tint="linear-gradient(200deg, color-mix(in oklab, var(--color-cyber-500) 30%, transparent), color-mix(in oklab, var(--color-ink-950) 55%, transparent))" />}
+        </motion.div>
       </div>
 
-      <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col">
-        <motion.div
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
+      {/* ── readability scrims: darken top + bottom so overlaid text always pops ── */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "linear-gradient(180deg, rgba(6,4,16,0.75) 0%, transparent 22%, transparent 48%, rgba(6,4,16,0.92) 100%)" }}
+        aria-hidden
+      />
+
+      {/* ── team name plates (poster-style, over the art) ── */}
+      <div className="pointer-events-none absolute inset-0 flex flex-col landscape:flex-row">
+        <div className="flex flex-1 items-start justify-center p-6 pt-16 sm:pt-20 landscape:items-center landscape:justify-start landscape:pl-10 landscape:pt-6">
+          <motion.div
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            className="flex items-center gap-3 text-center landscape:flex-col landscape:items-start landscape:text-left"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/celebeast-logo.png" alt="" className="h-11 w-11 shrink-0 rounded-lg object-contain sm:h-14 sm:w-14" />
+            <p className="text-persona text-2xl leading-none text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] sm:text-4xl">DS Celebeast</p>
+          </motion.div>
+        </div>
+        {/* portrait: hug the top of the lower panel (under VS, clear of the countdown);
+            landscape: centered on the right */}
+        <div className="flex flex-1 items-start justify-center p-6 pt-14 landscape:items-center landscape:justify-end landscape:pt-6 landscape:pr-10">
+          <motion.div
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="text-center landscape:text-right"
+          >
+            <p className="text-persona text-2xl leading-none text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] sm:text-4xl">{label}</p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── VS badge on the seam ── */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
+        <motion.span
+          initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.6, rotate: -8 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ duration: 0.5, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+          className="grid h-16 w-16 -skew-x-12 place-items-center bg-ink-950 sm:h-20 sm:w-20"
+          style={{ boxShadow: "5px 5px 0 rgba(0,0,0,0.6), 0 0 0 2px var(--color-gold-500)" }}
+        >
+          <span className="block skew-x-12 text-persona text-xl text-gold-500 sm:text-2xl">VS</span>
+        </motion.span>
+      </div>
+
+      {/* ── top bar: brand mark + way out (no nav on this page) ── */}
+      <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-5 py-4 sm:px-8">
+        <motion.span
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="mx-auto mb-6 inline-flex -skew-x-12 items-center gap-2 self-center bg-cyber-500 px-3 py-1.5"
+          className="inline-flex -skew-x-12 items-center gap-1.5 bg-cyber-500 px-3 py-1"
         >
-          <span className="flex skew-x-12 items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.22em] text-white">
+          <span className="flex skew-x-12 items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-white">
             <Star className="h-2.5 w-2.5" /> {cd.past ? "Live now" : "Next match"}
           </span>
-        </motion.div>
+        </motion.span>
+        <TransitionLink
+          href="/"
+          className="text-xs font-bold uppercase tracking-wide text-fog-400 transition-colors hover:text-fog-100"
+        >
+          ✕ Back to site
+        </TransitionLink>
+      </div>
 
-        {/* desktop: split fight-card panels */}
-        <div className="relative mx-auto hidden aspect-[21/9] w-full max-w-4xl sm:block">
-          <motion.div
-            initial={reduce ? { opacity: 0 } : { opacity: 0, x: -40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, ease: EASE }}
-            className="absolute inset-0 overflow-hidden"
-            style={{ clipPath: SEAM_LEFT }}
-          >
-            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, var(--color-ink-800), var(--color-brand-500) 160%)" }} />
-            <div className="halftone absolute inset-0 opacity-[0.05]" aria-hidden />
-            {/* content stays inside the visible left wedge (~55%) so it never runs under the seam */}
-            <div className="relative flex h-full w-[42%] items-center justify-start gap-4 p-6 sm:gap-5 sm:p-8">
-              {art[0] && <SquareArt src={art[0]} ring="var(--color-brand-400)" className="h-[48%] -rotate-3" delay={0.3} />}
-              <div className="min-w-0">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/celebeast-logo.png" alt="" className="mb-2 h-10 w-10 rounded-lg object-contain sm:h-12 sm:w-12" />
-                <p className="text-persona text-xl text-white sm:text-2xl">DS Celebeast</p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={reduce ? { opacity: 0 } : { opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, ease: EASE, delay: 0.1 }}
-            className="absolute inset-0 overflow-hidden"
-            style={{ clipPath: SEAM_RIGHT }}
-          >
-            <div className="absolute inset-0" style={{ background: "linear-gradient(225deg, var(--color-ink-800), var(--color-cyber-500) 160%)" }} />
-            <div className="halftone absolute inset-0 opacity-[0.05]" aria-hidden />
-            <span
-              className="pointer-events-none absolute bottom-2 right-4 font-display text-7xl font-black italic text-white/15 sm:text-9xl"
-              aria-hidden
-            >
-              {label.charAt(0)}
-            </span>
-            {/* mirror: content confined to the visible right wedge */}
-            <div className="relative ml-auto flex h-full w-[42%] items-center justify-end gap-4 p-6 text-right sm:gap-5 sm:p-8">
-              <p className="text-persona min-w-0 text-xl text-white sm:text-2xl">{label}</p>
-              {art[1] && <SquareArt src={art[1]} ring="var(--color-cyber-400)" className="h-[48%] rotate-3" delay={0.4} />}
-            </div>
-          </motion.div>
-
-          <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2">
-            <motion.span
-              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
-              className="grid h-16 w-16 -skew-x-12 place-items-center bg-ink-950"
-              style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.6), 0 0 0 2px var(--color-gold-500)" }}
-            >
-              <span className="block skew-x-12 text-persona text-lg text-gold-500">VS</span>
-            </motion.span>
-          </div>
-        </div>
-
-        {/* mobile: stacked cards, no split — the diagonal seam doesn't read well this narrow */}
-        <div className="mx-auto flex w-full max-w-xs flex-col items-stretch gap-2 sm:hidden">
-          <div className="clip-corner relative flex items-center gap-3 border border-white/10 bg-ink-850 p-3.5" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.4)" }}>
-            {art[0] && <SquareArt src={art[0]} ring="var(--color-brand-400)" className="h-12 -rotate-2" delay={0.1} />}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/celebeast-logo.png" alt="" className="h-8 w-8 shrink-0 rounded-lg object-contain" />
-            <p className="text-persona truncate text-lg text-fog-100">DS Celebeast</p>
-          </div>
-          <span className="mx-auto text-persona text-sm text-fog-600">vs</span>
-          <div className="clip-corner relative flex items-center gap-3 border border-white/10 bg-ink-850 p-3.5" style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.4)" }}>
-            {art[1] && <SquareArt src={art[1]} ring="var(--color-cyber-400)" className="h-12 rotate-2" delay={0.2} />}
-            <div
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg font-display text-base font-bold text-cyber-400"
-              style={{ background: "color-mix(in oklab, var(--color-cyber-500) 25%, transparent)" }}
-              aria-hidden
-            >
-              {label.charAt(0)}
-            </div>
-            <p className="text-persona truncate text-lg text-fog-100">{label}</p>
-          </div>
-        </div>
-
+      {/* ── bottom overlay: countdown + meta + share ── */}
+      <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-4 px-6 pb-8 sm:pb-10">
         <motion.div
           initial={reduce ? { opacity: 0 } : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="mx-auto mt-10 flex items-start gap-3 sm:mt-14 sm:gap-5"
+          className="flex items-start gap-2.5 sm:gap-4"
         >
           <DigitFlip value={cd.d} label="Days" />
           <DigitFlip value={cd.h} label="Hrs" />
@@ -241,24 +228,24 @@ export default function NextMatchHype({ match }: { match: MatchRow }) {
         </motion.div>
 
         <motion.div
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.42 }}
-          className="mx-auto mt-8 flex flex-wrap items-center justify-center gap-3 text-center"
+          className="flex flex-wrap items-center justify-center gap-2.5 text-center"
         >
           {match.tournament_name && (
-            <span className="-skew-x-12 border border-white/15 bg-white/5 px-3 py-1.5">
-              <span className="block skew-x-12 text-[11px] font-bold uppercase tracking-wide text-fog-300">{match.tournament_name}</span>
+            <span className="-skew-x-12 border border-white/20 bg-white/10 px-3 py-1">
+              <span className="block skew-x-12 text-[11px] font-bold uppercase tracking-wide text-fog-100">{match.tournament_name}</span>
             </span>
           )}
-          <span className="text-sm text-fog-500">{when}</span>
+          <span className="text-sm text-fog-300">{when}</span>
         </motion.div>
 
         <motion.div
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.52 }}
-          className="mx-auto mt-10 flex flex-wrap items-center justify-center gap-3"
+          className="flex flex-wrap items-center justify-center gap-3"
         >
           <Magnetic>
             <PButton onClick={share} accent="var(--color-cyber-500)">
